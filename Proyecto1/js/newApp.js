@@ -1,10 +1,10 @@
 // Imports
 import ClienteService from './services/ClienteService.js';
 
-class PrestamoApp {
+class FormCliente {
 
-    constructor() {
-        this.clienteService = new ClienteService();
+    constructor(clienteService) {
+        this.clienteService = clienteService;
         this.toast = new Notyf({
             duration: 3000,
             position: {
@@ -38,6 +38,7 @@ class PrestamoApp {
         this.installEventRegistrarCliente(); // <- Evento para registrar cliente
         this.installEventShowModalEditarCliente(); // <- Evento para mostrar modal de edición de cliente
         this.installEventEliminarCliente(); // <- Evento para eliminar cliente
+        this.installEventBuscarCliente(); // <- Evento para buscar cliente
     }
 
     // Evento de Manejo de pestañas
@@ -219,6 +220,29 @@ class PrestamoApp {
 
     }
 
+    // RF05: Búsqueda de clientes
+    installEventBuscarCliente(){
+        const buscarClienteInput = document.getElementById('buscarClienteInput');
+        const tablaClientesBody = document.querySelector('#tablaClientes tbody');
+
+        buscarClienteInput.addEventListener('keyup', () => {
+            const termino = buscarClienteInput.value.toLowerCase();
+            const rows = tablaClientesBody.getElementsByTagName('tr');
+
+            for (let i = 0; i < rows.length; i++) {
+                const nombre = rows[i].getElementsByTagName('td')[0].textContent.toLowerCase();
+                const rfc = rows[i].getElementsByTagName('td')[1].textContent.toLowerCase();
+
+                if (nombre.includes(termino) || rfc.includes(termino)) {
+                    rows[i].style.display = '';
+                } else {
+                    rows[i].style.display = 'none';
+                }
+            }
+        });
+
+    }
+
     async actualizarSelectClientesFromPrestamo(listaClientes) {
         const selectCliente = document.getElementById('clientePrestamo');
         selectCliente.innerHTML = '<option value="">Seleccione un cliente...</option>';
@@ -234,9 +258,19 @@ class PrestamoApp {
             console.error('Error al cargar clientes en select:', error);
         }
     }
+}
+
+
+class App{
+    constructor() {
+        this.clienteService = new ClienteService();
+
+        this.formCliente = new FormCliente(this.clienteService);
+    }
 
 }
 
+
 // Inicializar la aplicación
-const app = new PrestamoApp();
+const app = new App();
 window.app = app; // <- Hacerla global para los event listeners

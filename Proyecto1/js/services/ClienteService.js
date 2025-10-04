@@ -1,5 +1,5 @@
 // Importar Cliente y ClienteRepository
-import ClienteRepository from '../repositorys/ClienteRepository.js';
+import ClienteRepository from '../repository/ClienteRepository.js';
 import Cliente from '../models/Cliente.js';
 
 class ClienteService {
@@ -34,7 +34,7 @@ class ClienteService {
     async getAllClientes() {
         try {
             const clientesData = await this.repository.getAll();
-            return clientesData.map(data => Cliente.fromFirestore({ id: data.id, data: () => data }));
+            return clientesData.map(data => Cliente.fromFirestore({id: data.id, data: () => data}));
         } catch (error) {
             throw error;
         }
@@ -44,7 +44,7 @@ class ClienteService {
     async getClienteById(id) {
         try {
             const clienteData = await this.repository.getById(id);
-            return Cliente.fromFirestore({ id: clienteData.id, data: () => clienteData });
+            return Cliente.fromFirestore({id: clienteData.id, data: () => clienteData});
         } catch (error) {
             throw error;
         }
@@ -58,7 +58,7 @@ class ClienteService {
             if (updates.rfc !== undefined) validUpdates.rfc = updates.rfc.trim();
             if (updates.telefono !== undefined) validUpdates.telefono = updates.telefono.trim();
             if (updates.direccion !== undefined) validUpdates.direccion = updates.direccion.trim();
- 
+
             await this.repository.update(id, validUpdates);
         } catch (error) {
             throw error;
