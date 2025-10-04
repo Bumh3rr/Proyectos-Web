@@ -34,33 +34,13 @@ class FormCliente {
         this.modalEditCliente = document.getElementById('modalEditarCliente')
         this.loading = document.getElementById('loading');
         this.initEventListeners();
-        this.cargarClientes();
     }
 
     initEventListeners() {
-        this.installEventoManejoPestanas(); // <- Evento de Manejo de pestañas
         this.installEventRegistrarCliente(); // <- Evento para registrar cliente
         this.installEventShowModalEditarCliente(); // <- Evento para mostrar modal de edición de cliente
         this.installEventEliminarCliente(); // <- Evento para eliminar cliente
         this.installEventBuscarCliente(); // <- Evento para buscar cliente
-    }
-
-    // Evento de Manejo de pestañas
-    installEventoManejoPestanas() {
-        document.addEventListener('DOMContentLoaded', function () {
-            const tabs = document.querySelectorAll('.tab-button');
-            const tabContents = document.querySelectorAll('.tab-content');
-
-            tabs.forEach(tab => {
-                tab.addEventListener('click', () => {
-                    tabs.forEach(t => t.classList.remove('active'));
-                    tabContents.forEach(c => c.classList.remove('active'));
-
-                    tab.classList.add('active');
-                    document.getElementById(tab.dataset.tab).classList.add('active');
-                });
-            });
-        });
     }
 
     // RF01: Registrar nuevo cliente
@@ -121,9 +101,6 @@ class FormCliente {
             });
 
             this.loading.style.display = 'none'; // Ocultar loading
-            this.toast.success('Clientes cargados correctamente'); // Notificación de éxito
-
-            // Actualizar el select de clientes en la sección de préstamos
             await this.actualizarSelectClientesFromPrestamo(listaClientes);
         } catch (error) {
             this.loading.style.display = 'none'; // Ocultar loading
@@ -273,10 +250,36 @@ class FormCliente {
 class App {
     constructor() {
         this.clienteService = new ClienteService();
-
         this.formCliente = new FormCliente(this.clienteService);
+        this.installEventManejoPestana();
+        this.formCliente.cargarClientes(); // <- Cargar clientes al iniciar la app
     }
 
+    installEventManejoPestana() {
+        document.addEventListener('DOMContentLoaded', function () {
+            const tabs = document.querySelectorAll('.tab-button');
+            const tabContents = document.querySelectorAll('.tab-content');
+
+            tabs.forEach(tab => {
+                tab.addEventListener('click', () => {
+                    tabs.forEach(t => t.classList.remove('active'));
+                    tabContents.forEach(c => c.classList.remove('active'));
+
+                    tab.classList.add('active');
+                    document.getElementById(tab.dataset.tab).classList.add('active');
+                    if (tab.dataset.tab === 'clientes') {
+                        app.formCliente.cargarClientes();
+                    }else if (tab.dataset.tab === 'prestamos') {
+
+                    }else if (tab.dataset.tab === 'amortizacion') {
+
+                    }else if ( tab.dataset.tab === 'tasas') {
+
+                    }
+                });
+            });
+        });
+    }
 }
 
 
