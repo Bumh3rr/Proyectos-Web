@@ -1,17 +1,27 @@
 <!DOCTYPE html>
 <html lang="es">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Crédito Fácil - Sistema de Gestión de Préstamos</title>
-    <link rel="stylesheet" href="styles/styles.css">
-    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>💰</text></svg>">
+    <link rel="stylesheet" href="css/styles.css">
+    <link rel="icon"
+        href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>💰</text></svg>">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
+
+    <!-- Notyf Toast -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/notyf@3/notyf.min.css">
 </head>
+
 <body>
+
+    <!-- Contenedor Principal -->
     <div class="layout-container">
+
+        <!-- Navegacion -->
         <nav class="sidebar">
             <div class="sidebar-header">
                 <h1>Crédito Fácil</h1>
@@ -19,36 +29,57 @@
             <ul class="sidebar-menu">
                 <li>
                     <button class="tab-button active" data-tab="clientes">
-                        <svg class="icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
+                        <svg class="icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none"
+                            stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                            <circle cx="9" cy="7" r="4"></circle>
+                            <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+                            <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+                        </svg>
                         <span>Clientes</span>
                     </button>
                 </li>
                 <li>
                     <button class="tab-button" data-tab="prestamos">
-                        <svg class="icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23"></line><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg>
+                        <svg class="icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none"
+                            stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+                            <line x1="12" y1="1" x2="12" y2="23"></line>
+                            <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path>
+                        </svg>
                         <span>Préstamos</span>
                     </button>
                 </li>
                 <li>
                     <button class="tab-button" data-tab="amortizacion">
-                        <svg class="icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><line x1="3" y1="9" x2="21" y2="9"></line><line x1="9" y1="21" x2="9" y2="9"></line></svg>
+                        <svg class="icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none"
+                            stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+                            <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+                            <line x1="3" y1="9" x2="21" y2="9"></line>
+                            <line x1="9" y1="21" x2="9" y2="9"></line>
+                        </svg>
                         <span>Amortización</span>
                     </button>
                 </li>
                 <li>
                     <button class="tab-button" data-tab="tasas">
-                        <svg class="icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="5" x2="5" y2="19"></line><circle cx="6.5" cy="6.5" r="2.5"></circle><circle cx="17.5" cy="17.5" r="2.5"></circle></svg>
+                        <svg class="icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none"
+                            stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+                            <line x1="19" y1="5" x2="5" y2="19"></line>
+                            <circle cx="6.5" cy="6.5" r="2.5"></circle>
+                            <circle cx="17.5" cy="17.5" r="2.5"></circle>
+                        </svg>
                         <span>Tasas de Interés</span>
                     </button>
                 </li>
             </ul>
         </nav>
 
+        <!-- Contenido -->
         <main class="main-content">
             <!-- Sección Clientes -->
             <section id="clientes" class="tab-content active">
                 <h2>Gestión de Clientes</h2>
-                
+
                 <div class="form-container">
                     <h3>Registrar Nuevo Cliente</h3>
                     <form id="formCliente">
@@ -56,22 +87,22 @@
                             <label for="nombre">Nombre Completo:</label>
                             <input type="text" id="nombre" required>
                         </div>
-                        
+
                         <div class="form-group">
                             <label for="rfc">RFC:</label>
                             <input type="text" id="rfc" required>
                         </div>
-                        
+
                         <div class="form-group">
                             <label for="telefono">Teléfono:</label>
                             <input type="tel" id="telefono" required>
                         </div>
-                        
+
                         <div class="form-group">
                             <label for="direccion">Dirección:</label>
                             <input type="text" id="direccion" required>
                         </div>
-                        
+
                         <button type="submit" class="btn btn-primary">🧑‍➕ Registrar Cliente</button>
                     </form>
                 </div>
@@ -102,7 +133,7 @@
             <!-- Sección Préstamos -->
             <section id="prestamos" class="tab-content">
                 <h2>Gestión de Préstamos</h2>
-                
+
                 <div class="form-container">
                     <h3>Solicitar Nuevo Préstamo</h3>
                     <form id="formPrestamo">
@@ -112,27 +143,27 @@
                                 <option value="">Seleccione un cliente...</option>
                             </select>
                         </div>
-                        
+
                         <div class="form-group">
                             <label for="montoSolicitado">Monto Solicitado:</label>
                             <input type="number" id="montoSolicitado" step="0.01" required>
                         </div>
-                        
+
                         <div class="form-group">
                             <label for="tasaInteres">Tasa de Interés Anual (%):</label>
                             <input type="number" id="tasaInteres" step="0.01" required>
                         </div>
-                        
+
                         <div class="form-group">
                             <label for="plazoMeses">Plazo (meses):</label>
                             <input type="number" id="plazoMeses" min="1" required>
                         </div>
-                        
+
                         <div class="form-group">
                             <label for="fechaDesembolso">Fecha de Desembolso:</label>
                             <input type="date" id="fechaDesembolso" required>
                         </div>
-                        
+
                         <button type="submit" class="btn btn-primary">🧮 Calcular y Crear Préstamo</button>
                     </form>
 
@@ -157,7 +188,7 @@
                             <input type="radio" name="filtroPrestamo" value="vencido"> Vencidos
                         </label>
                     </div>
-                    
+
                     <table id="tablaPrestamos">
                         <thead>
                             <tr>
@@ -181,7 +212,7 @@
             <!-- Sección Amortización -->
             <section id="amortizacion" class="tab-content">
                 <h2>Tabla de Amortización</h2>
-                
+
                 <div class="form-container">
                     <h3>Seleccionar Préstamo</h3>
                     <div class="form-group">
@@ -222,7 +253,7 @@
             <!-- Sección Tasas de Interés -->
             <section id="tasas" class="tab-content">
                 <h2>Tasas de Interés y Condiciones</h2>
-                
+
                 <div class="form-container">
                     <h3>Configurar Tasas</h3>
                     <form id="formTasas">
@@ -230,17 +261,17 @@
                             <label for="tasaNombre">Nombre de la Tasa:</label>
                             <input type="text" id="tasaNombre" required>
                         </div>
-                        
+
                         <div class="form-group">
                             <label for="tasaPorcentaje">Porcentaje Anual (%):</label>
                             <input type="number" id="tasaPorcentaje" step="0.01" required>
                         </div>
-                        
+
                         <div class="form-group">
                             <label for="tasaDescripcion">Descripción:</label>
                             <textarea id="tasaDescripcion" rows="3"></textarea>
                         </div>
-                        
+
                         <button type="submit" class="btn btn-primary">💾 Guardar Tasa</button>
                     </form>
                 </div>
@@ -264,6 +295,9 @@
             </section>
         </main>
     </div>
+
+
+    <!-- Modales -->
     <div id="modalEditarCliente" class="modal">
         <div class="modal-content">
             <span class="close-button">&times;</span>
@@ -325,7 +359,10 @@
         </div>
     </div>
 
+    <!-- Toast Notifications -->
+    <script src="https://cdn.jsdelivr.net/npm/notyf@3/notyf.min.js"></script>
     <!-- Firebase SDK -->
-    <script type="module" src="app.js"></script>
+    <script type="module" src="js/newApp.js"></script>
 </body>
+
 </html>

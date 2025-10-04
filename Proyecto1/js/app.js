@@ -1,6 +1,3 @@
-// ==========================================
-// CONFIGURACIÓN DE FIREBASE
-// ==========================================
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-app.js";
 import { getFirestore, collection, addDoc, getDocs, query, orderBy, doc, getDoc, updateDoc, deleteDoc, where, Timestamp } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-firestore.js";
 
@@ -24,97 +21,9 @@ const clientesRef = collection(db, 'clientes');
 const prestamosRef = collection(db, 'prestamos');
 const amortizacionRef = collection(db, 'amortizacion');
 const pagosRef = collection(db, 'pagos');
-
-// ==========================================
-// NAVEGACIÓN ENTRE PESTAÑAS
-// ==========================================
-document.addEventListener('DOMContentLoaded', function () {
-    const tabs = document.querySelectorAll('.tab-button');
-    const tabContents = document.querySelectorAll('.tab-content');
-
-    tabs.forEach(tab => {
-        tab.addEventListener('click', () => {
-            tabs.forEach(t => t.classList.remove('active'));
-            tabContents.forEach(c => c.classList.remove('active'));
-
-            tab.classList.add('active');
-            document.getElementById(tab.dataset.tab).classList.add('active');
-        });
-    });
-
-    // Inicializar la aplicación
-    cargarClientes();
-    cargarPrestamos();
-    cargarPrestamosEnSelect();
-    cargarTasas();
-});
-
-// ==========================================
-// GESTIÓN DE CLIENTES
-// ==========================================
 const formCliente = document.getElementById('formCliente');
 const tablaClientesBody = document.querySelector('#tablaClientes tbody');
 
-// RF01: Registrar nuevo cliente
-formCliente.addEventListener('submit', async function (e) {
-    e.preventDefault();
-    
-    const nuevoCliente = {
-        nombre: document.getElementById('nombre').value,
-        rfc: document.getElementById('rfc').value,
-        telefono: document.getElementById('telefono').value,
-        direccion: document.getElementById('direccion').value,
-        fechaRegistro: Timestamp.now()
-    };
-
-    try {
-        await addDoc(clientesRef, nuevoCliente);
-        alert('✅ Cliente registrado exitosamente');
-        formCliente.reset();
-        cargarClientes();
-    } catch (error) {
-        console.error('Error al registrar cliente:', error);
-        alert('❌ Error al registrar el cliente');
-    }
-});
-
-// RF02: Mostrar lista de clientes
-async function cargarClientes() {
-    try {
-        const q = query(clientesRef, orderBy('fechaRegistro', 'desc'));
-        const snapshot = await getDocs(q);
-        tablaClientesBody.innerHTML = '';
-
-        if (snapshot.empty) {
-            tablaClientesBody.innerHTML = '<tr><td colspan="6" style="text-align: center;">No hay clientes registrados</td></tr>';
-            return;
-        }
-
-        snapshot.forEach(doc => {
-            const cliente = doc.data();
-            const fecha = cliente.fechaRegistro.toDate().toLocaleDateString('es-MX');
-            
-            const row = document.createElement('tr');
-            row.innerHTML = `
-                <td>${cliente.nombre}</td>
-                <td>${cliente.rfc}</td>
-                <td>${cliente.telefono}</td>
-                <td>${cliente.direccion}</td>
-                <td>${fecha}</td>
-                <td>
-                    <button class="btn btn-info btn-small" onclick="editarCliente('${doc.id}')">✏️ Editar</button>
-                    <button class="btn btn-danger btn-small" onclick="eliminarCliente('${doc.id}')">🗑️ Eliminar</button>
-                </td>
-            `;
-            tablaClientesBody.appendChild(row);
-        });
-
-        // Actualizar select de préstamos
-        actualizarSelectClientes();
-    } catch (error) {
-        console.error('Error al cargar clientes:', error);
-    }
-}
 
 // RF03: Modificar datos de cliente (excepto ID)
 const modalEditarCliente = document.getElementById('modalEditarCliente');
