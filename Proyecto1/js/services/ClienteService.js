@@ -73,10 +73,6 @@ class ClienteService {
     // Eliminar cliente
     async eliminarCliente(id) {
         try {
-            const canDelete = await this.validarEliminarCliente(id);
-            if (!canDelete) {
-                throw new Error('No se puede eliminar el cliente porque tiene préstamos activos');
-            }
             await this.repository.delete(id);
         } catch (error) {
             throw error;

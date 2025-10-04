@@ -32,6 +32,7 @@ class FormCliente {
         this.formCliente = document.getElementById('formCliente');
         this.tablaClientesBody = document.querySelector('#tablaClientes tbody');
         this.modalEditCliente = document.getElementById('modalEditarCliente')
+        this.loading = document.getElementById('loading');
         this.initEventListeners();
         this.cargarClientes();
     }
@@ -74,12 +75,16 @@ class FormCliente {
             const direccion = document.getElementById('direccion').value;
 
             try {
+                this.loading.style.display = 'block'; // Mostrar loading
                 let id = await this.clienteService.createCliente(nombre, rfc, telefono, direccion);
-                this.toast.success('✅ Cliente registrado exitosamente, ID: ' + id);
+
+                this.loading.style.display = 'none'; // Ocultar loading
+                this.toast.success('Cliente registrado exitosamente, ID: ' + id);
                 this.formCliente.reset();
 
-                this.cargarClientes();
+                await this.cargarClientes();
             } catch (error) {
+                this.loading.style.display = 'none'; // Ocultar loading
                 this.toast.error('Error al registrar el cliente\n' + error.message);
             }
         });
@@ -89,8 +94,8 @@ class FormCliente {
     // Cargar clientes y mostrarlos en la tabla
     async cargarClientes() {
         try {
+            this.loading.style.display = 'block';
             const listaClientes = await this.clienteService.getAllClientes();
-
             if (listaClientes.length === 0) {
                 this.tablaClientesBody.innerHTML = '<tr><td colspan="6" style="text-align: center;">No hay clientes registrados</td></tr>';
                 return;
@@ -115,12 +120,13 @@ class FormCliente {
                 this.tablaClientesBody.appendChild(row);
             });
 
-            // Notificación de éxito
-            this.toast.success('Clientes cargados correctamente');
+            this.loading.style.display = 'none'; // Ocultar loading
+            this.toast.success('Clientes cargados correctamente'); // Notificación de éxito
 
             // Actualizar el select de clientes en la sección de préstamos
             await this.actualizarSelectClientesFromPrestamo(listaClientes);
         } catch (error) {
+            this.loading.style.display = 'none'; // Ocultar loading
             this.toast.error('Error al cargar clientes\n' + error.message);
         }
     }
@@ -130,6 +136,7 @@ class FormCliente {
     installEventShowModalEditarCliente() {
         window.editarCliente = async (id) => {
             try {
+                this.loading.style.display = 'block'; // Mostrar loading
                 const cliente = await this.clienteService.getClienteById(id);
 
                 document.getElementById('editarClienteId').value = id;
@@ -138,9 +145,10 @@ class FormCliente {
                 document.getElementById('editarTelefono').value = cliente.telefono;
                 document.getElementById('editarDireccion').value = cliente.direccion;
 
-                // Mostrar modal
-                this.modalEditCliente.style.display = 'block';
+                this.loading.style.display = 'none'; // Ocultar loading
+                this.modalEditCliente.style.display = 'block'; // Mostrar modal de edición
             } catch (error) {
+                this.loading.style.display = 'none'; // Ocultar loading
                 this.toast.error('Error al obtener cliente para editar\n' + error.message);
             }
         }
@@ -153,7 +161,7 @@ class FormCliente {
             modalEditarCliente.style.display = 'none';
         });
         window.addEventListener('click', (event) => {
-            if (event.target == modalEditarCliente) {
+            if (event.target === modalEditarCliente) {
                 modalEditarCliente.style.display = 'none';
             }
         });
@@ -163,15 +171,18 @@ class FormCliente {
             const id = document.getElementById('editarClienteId').value;
 
             try {
+                this.loading.style.display = 'block'; // Mostrar loading
                 await this.clienteService.updateCliente(id, {
                     nombre: document.getElementById('editarNombre').value,
                     rfc: document.getElementById('editarRfc').value,
                     telefono: document.getElementById('editarTelefono').value,
                     direccion: document.getElementById('editarDireccion').value
                 });
-                this.toast.success('Cliente actualizado exitosamente');
-                document.getElementById('modalEditarCliente').style.display = 'none';
-                this.cargarClientes();
+                this.loading.style.display = 'block'; // Mostrar loading
+                this.toast.success('Cliente actualizado exitosamente'); // Notificación de éxito
+                document.getElementById('modalEditarCliente').style.display = 'none'; // Ocultar modal de edición
+
+                await this.cargarClientes(); // Recargar la lista de clientes
             } catch (error) {
                 this.toast.error('Error al actualizar el cliente\n' + error.message);
             }
@@ -220,7 +231,7 @@ class FormCliente {
     }
 
     // RF05: Búsqueda de clientes
-    installEventBuscarCliente(){
+    installEventBuscarCliente() {
         const buscarClienteInput = document.getElementById('buscarClienteInput');
 
         buscarClienteInput.addEventListener('keyup', () => {
@@ -259,7 +270,7 @@ class FormCliente {
 }
 
 
-class App{
+class App {
     constructor() {
         this.clienteService = new ClienteService();
 
