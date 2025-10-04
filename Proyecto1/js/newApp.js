@@ -29,6 +29,9 @@ class FormCliente {
                 }
             ]
         });
+        this.formCliente = document.getElementById('formCliente');
+        this.tablaClientesBody = document.querySelector('#tablaClientes tbody');
+        this.modalEditCliente = document.getElementById('modalEditarCliente')
         this.initEventListeners();
         this.cargarClientes();
     }
@@ -62,8 +65,7 @@ class FormCliente {
     // RF01: Registrar nuevo cliente
     // Evento para registrar cliente
     installEventRegistrarCliente() {
-        const formCliente = document.getElementById('formCliente');
-        formCliente.addEventListener('submit', async (e) => {
+        this.formCliente.addEventListener('submit', async (e) => {
             e.preventDefault();
 
             const nombre = document.getElementById('nombre').value;
@@ -74,7 +76,7 @@ class FormCliente {
             try {
                 let id = await this.clienteService.createCliente(nombre, rfc, telefono, direccion);
                 this.toast.success('✅ Cliente registrado exitosamente, ID: ' + id);
-                formCliente.reset();
+                this.formCliente.reset();
 
                 this.cargarClientes();
             } catch (error) {
@@ -87,21 +89,18 @@ class FormCliente {
     // Cargar clientes y mostrarlos en la tabla
     async cargarClientes() {
         try {
-            const tablaClientesBody = document.querySelector('#tablaClientes tbody');
             const listaClientes = await this.clienteService.getAllClientes();
 
             if (listaClientes.length === 0) {
-                tablaClientesBody.innerHTML = '<tr><td colspan="6" style="text-align: center;">No hay clientes registrados</td></tr>';
+                this.tablaClientesBody.innerHTML = '<tr><td colspan="6" style="text-align: center;">No hay clientes registrados</td></tr>';
                 return;
             }
 
-            tablaClientesBody.innerHTML = '';
+            this.tablaClientesBody.innerHTML = '';
             listaClientes.forEach(cliente => {
                 console.log(cliente);
                 const fecha = cliente.fechaRegistro.toLocaleDateString('es-MX');
                 const row = document.createElement('tr');
-                // Eliminar el contenido previo
-
                 row.innerHTML = `
                     <td>${cliente.nombre}</td>
                     <td>${cliente.rfc}</td>
@@ -113,7 +112,7 @@ class FormCliente {
                         <button type="button" class="btn btn-primary btn-sm" onclick="eliminarCliente('${cliente.id}')">Eliminar</button>
                     </td>
                 `;
-                tablaClientesBody.appendChild(row);
+                this.tablaClientesBody.appendChild(row);
             });
 
             // Notificación de éxito
@@ -140,7 +139,7 @@ class FormCliente {
                 document.getElementById('editarDireccion').value = cliente.direccion;
 
                 // Mostrar modal
-                document.getElementById('modalEditarCliente').style.display = 'block';
+                this.modalEditCliente.style.display = 'block';
             } catch (error) {
                 this.toast.error('Error al obtener cliente para editar\n' + error.message);
             }
@@ -223,11 +222,10 @@ class FormCliente {
     // RF05: Búsqueda de clientes
     installEventBuscarCliente(){
         const buscarClienteInput = document.getElementById('buscarClienteInput');
-        const tablaClientesBody = document.querySelector('#tablaClientes tbody');
 
         buscarClienteInput.addEventListener('keyup', () => {
             const termino = buscarClienteInput.value.toLowerCase();
-            const rows = tablaClientesBody.getElementsByTagName('tr');
+            const rows = this.tablaClientesBody.getElementsByTagName('tr');
 
             for (let i = 0; i < rows.length; i++) {
                 const nombre = rows[i].getElementsByTagName('td')[0].textContent.toLowerCase();
