@@ -91,7 +91,7 @@ class FormPrestamo {
     async cargarPrestamos(filtro = 'todos') {
         try {
             this.loading.style.display = 'block'; // Mostrar loading
-            const listaPrestamos = await this.prestamoService.getAllPrestamos(filtro);
+            const listaPrestamos = await this.prestamoService.getAllPrestamos({ estado: filtro });
             
             if (listaPrestamos.length === 0) {
                 this.tablaPrestamosBody.innerHTML = '<tr><td colspan="8" style="text-align: center;">No hay préstamos que coincidan con el filtro</td></tr>';
@@ -112,7 +112,7 @@ class FormPrestamo {
                     <td><span class="status status-${prestamo.estado.toLowerCase()}">${prestamo.estado}</span></td>
                     <td>${fecha}</td>
                     <td>
-                        <button class="btn btn-info btn-small" onclick="verPagos('${prestamo.id}')">Ver Pagos</button>
+                        <button class="btn btn-info btn-small" onclick="verPagos('${prestamo.id}', '${prestamo.idCliente}')">Ver Pagos</button>
                     </td>
                 `;
                 this.tablaPrestamosBody.appendChild(row);

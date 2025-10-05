@@ -16,15 +16,22 @@ class PrestamoRepository {
         }
     }
 
-    async getAll(filtro = 'todos') {
+    async getAll(filtros = {}) {
         try {
-            let q;
-            if (filtro === 'todos') {
-                q = query(this.collection, orderBy('fechaCreacion', 'desc'));
-            } else {
-                q = query(this.collection, where('estado', '==', filtro), orderBy('fechaCreacion', 'desc'));
+            const { estado, clienteId } = filtros;
+            const queryConstraints = [orderBy('fechaCreacion', 'desc')];
+
+            if (estado && estado !== 'todos') {
+                queryConstraints.unshift(where('estado', '==', estado));
             }
+
+            if (clienteId) {
+                queryConstraints.unshift(where('idCliente', '==', clienteId));
+            }
+
+            const q = query(this.collection, ...queryConstraints);
             const querySnapshot = await getDocs(q);
+            
             return querySnapshot.docs.map(doc => ({
                 id: doc.id,
                 ...doc.data()

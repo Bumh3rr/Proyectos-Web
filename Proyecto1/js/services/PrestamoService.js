@@ -43,13 +43,59 @@ class PrestamoService {
         }
     }
 
-    async getAllPrestamos(filtro = 'todos') {
+    async getAllPrestamos(filtros = {}) {
         try {
-            const prestamos = await this.prestamoRepository.getAll(filtro);
+            const prestamos = await this.prestamoRepository.getAll(filtros);
             return prestamos;
         } catch (error) {
             throw error;
         }
+    }
+
+    async getPrestamoById(id) {
+        try {
+            const prestamo = await this.prestamoRepository.getById(id);
+            // Las fechas de Firestore vienen como Timestamps, las convertimos a Date de JS
+            if (prestamo.fechaDesembolso) {
+                prestamo.fechaDesembolso = prestamo.fechaDesembolso.toDate();
+            }
+            if (prestamo.fechaCreacion) {
+                prestamo.fechaCreacion = prestamo.fechaCreacion.toDate();
+            }
+            return prestamo;
+        } catch (error) {
+            throw error;
+        }
+    }
+
+    generarTablaAmortizacion(prestamo) {
+        const tabla = [];
+        let saldoInicial = prestamo.monto;
+        const tasaMensual = (prestamo.tasaInteres / 100) / 12;
+
+        for (let i = 1; i <= prestamo.plazo; i++) {
+            const interes = saldoInicial * tasaMensual;
+            const amortizacionCapital = prestamo.cuotaMensual - interes;
+            const saldoFinal = saldoInicial - amortizacionCapital;
+
+            // Calculamos la fecha programada para este pago
+            const fechaProgramada = new Date(prestamo.fechaDesembolso);
+            fechaProgramada.setMonth(fechaProgramada.getMonth() + i);
+
+            const pago = {
+                periodo: i,
+                fechaProgramada: fechaProgramada,
+                saldoInicial: saldoInicial,
+                interes: interes,
+                amortizacionCapital: amortizacionCapital,
+                cuotaTotal: prestamo.cuotaMensual,
+                saldoFinal: saldoFinal < 0.01 ? 0 : saldoFinal, // Redondeo para el último pago
+                fechaPagoReal: null // Esto se actualizará cuando se registre un pago
+            };
+            tabla.push(pago);
+            saldoInicial = saldoFinal;
+        }
+        return tabla;
     }
 }
 
