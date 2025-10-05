@@ -1,18 +1,12 @@
-
-import PrestamoService from '../services/PrestamoService.js';
-import Amortizacion from '../models/Amortizacion.js';
-
 class FormAmortizacion {
-    constructor() {
-        this.prestamoService = new PrestamoService();
+    constructor(toast,showLoading, prestamoService) {
+        this.prestamoService = prestamoService;
         this.prestamoAmortizacionSelect = document.getElementById('prestamoAmortizacion');
         this.tablaAmortizacionBody = document.querySelector('#tablaAmortizacion tbody');
         this.infoPrestamoDiv = document.getElementById('infoPrestamo');
-        this.toast = new Notyf({
-            duration: 3000,
-            position: { x: 'right', y: 'top' },
-        });
-
+        this.toast = toast
+        this.showLoading = showLoading;
+        this.loading = document.getElementById('loading');
         this.initEventListeners();
     }
 
@@ -33,10 +27,11 @@ class FormAmortizacion {
 
     async cargarPrestamosEnDropdown(clienteId = null) {
         try {
-            const filtros = { estado: 'todos' };
+            const filtros = {estado: 'todos'};
             if (clienteId) {
                 filtros.clienteId = clienteId;
             }
+            this.showLoading(true);
             const prestamos = await this.prestamoService.getAllPrestamos(filtros);
             this.prestamoAmortizacionSelect.innerHTML = '<option value="">Seleccione un préstamo...</option>';
             prestamos.forEach(prestamo => {
@@ -45,14 +40,16 @@ class FormAmortizacion {
                 option.textContent = `${prestamo.nombreCliente} - ${prestamo.monto.toFixed(2)} (${prestamo.estado})`;
                 this.prestamoAmortizacionSelect.appendChild(option);
             });
+            this.showLoading(false);
         } catch (error) {
+            this.showLoading(false);
             this.toast.error('Error al cargar los préstamos en el selector.');
-            console.error(error);
         }
     }
 
     async mostrarTablaAmortizacion(prestamoId) {
         try {
+            this.showLoading(true);
             const prestamo = await this.prestamoService.getPrestamoById(prestamoId);
             const tabla = this.prestamoService.generarTablaAmortizacion(prestamo);
 
@@ -64,21 +61,26 @@ class FormAmortizacion {
                 <p><strong>Cuota Mensual:</strong> ${prestamo.cuotaMensual.toFixed(2)}</p>
             `;
 
+            const toDecimal = (numero) =>{
+               return  numero.toLocaleString('es-MX', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+            }
+
+
             this.tablaAmortizacionBody.innerHTML = '';
             tabla.forEach(pago => {
-                const fechaPagoReal = prestamo.pagos && prestamo.pagos[pago.periodo] 
-                    ? prestamo.pagos[pago.periodo].toDate().toLocaleDateString('es-MX') 
+                const fechaPagoReal = prestamo.pagos && prestamo.pagos[pago.periodo]
+                    ? prestamo.pagos[pago.periodo].toDate().toLocaleDateString('es-MX')
                     : 'Pendiente';
 
                 const row = document.createElement('tr');
                 row.innerHTML = `
                     <td>${pago.periodo}</td>
                     <td>${pago.fechaProgramada.toLocaleDateString('es-MX')}</td>
-                    <td>${pago.saldoInicial.toFixed(2)}</td>
+                    <td>${toDecimal(pago.saldoInicial)}</td>
                     <td>${pago.interes.toFixed(2)}</td>
-                    <td>${pago.amortizacionCapital.toFixed(2)}</td>
-                    <td>${pago.cuotaTotal.toFixed(2)}</td>
-                    <td>${pago.saldoFinal.toFixed(2)}</td>
+                    <td>${toDecimal(pago.amortizacionCapital)}</td>
+                    <td>${toDecimal(pago.cuotaTotal)}</td>
+                    <td>${toDecimal(pago.saldoFinal)}</td>
                     <td>${fechaPagoReal}</td>
                     <td>
                         ${fechaPagoReal === 'Pendiente' ? `<button class="btn btn-success btn-small" onclick="registrarPago('${prestamo.id}', ${pago.periodo})">Pagar</button>` : 'Pagado'}
@@ -87,10 +89,21 @@ class FormAmortizacion {
                 this.tablaAmortizacionBody.appendChild(row);
             });
 
+            this.showLoading(false);
         } catch (error) {
+            this.showLoading(false);
             this.toast.error(`Error al mostrar la tabla de amortización: ${error.message}`);
-            console.error(error);
         }
+
+        window.registrarPago = async (prestamoId, periodo) => {
+            try {
+                await this.prestamoService.realizarPago(prestamoId, periodo);
+                this.toast.success('Pago registrado correctamente.');
+                await this.mostrarTablaAmortizacion(prestamoId);
+            } catch (error) {
+                this.toast.error(`Error al registrar el pago: ${error.message}`);
+            }
+        };
     }
 
     limpiarVista() {

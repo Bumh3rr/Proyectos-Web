@@ -1,6 +1,7 @@
 // Importar Cliente y ClienteRepository
 import ClienteRepository from '../repository/ClienteRepository.js';
 import Cliente from '../models/Cliente.js';
+import {Timestamp} from "https://www.gstatic.com/firebasejs/10.10.0/firebase-firestore.js";
 
 class ClienteService {
     constructor() {
@@ -76,7 +77,7 @@ class ClienteService {
                 rfc: this.validateRFC(rfc),
                 telefono: this.validateTelefono(telefono),
                 direccion: this.capitalizeString(direccion),
-                fechaRegistro: new Date()
+                fechaRegistro: new Date(),
             };
 
             const clienteId = await this.repository.add(clienteData);

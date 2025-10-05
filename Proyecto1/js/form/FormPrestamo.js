@@ -1,31 +1,12 @@
 class FormPrestamo {
 
-    constructor(prestamoService) {
+
+    constructor(toast, showLoading, prestamoService, clienteService, lambdaVerPagos) {
         this.prestamoService = prestamoService;
-        this.toast = new Notyf({
-            duration: 3000,
-            position: {
-                x: 'right',
-                y: 'top',
-            },
-            types: [
-                {
-                    type: 'warning',
-                    background: 'orange',
-                    icon: {
-                        className: 'material-icons',
-                        tagName: 'i',
-                        text: 'warning'
-                    }
-                },
-                {
-                    type: 'error',
-                    background: 'indianred',
-                    duration: 2000,
-                    dismissible: true
-                }
-            ]
-        });
+        this.clienteService = clienteService;
+        this.lambdaVerPagos = lambdaVerPagos;
+        this.toast = toast;
+        this.showLoading = showLoading;
         this.formPrestamo = document.getElementById('formPrestamo');
         this.tablaPrestamosBody = document.querySelector('#tablaPrestamos tbody');
         this.resultadoCalculo = document.getElementById('resultadoCalculo');
@@ -37,6 +18,7 @@ class FormPrestamo {
         this.installEventRegistrarPrestamo(); // <- Evento para registrar préstamo
         this.installEventFiltrarPrestamos(); // <- Evento para filtrar préstamos
         this.installEventBuscarPrestamo(); // <- Evento para buscar prestamos asociados a un cliente
+        this.installEventVerPagos(); // <- Evento para ver pagos de un préstamo
     }
 
     // Evento para registrar préstamo
@@ -51,27 +33,29 @@ class FormPrestamo {
             const fechaDesembolso = new Date(document.getElementById('fechaDesembolso').value);
 
             try {
-                this.loading.style.display = 'block'; // Mostrar loading
-                const { prestamoId, cuotaMensual } = await this.prestamoService.createPrestamo(idCliente, monto, tasaAnual, plazo, fechaDesembolso);
-                
-                this.loading.style.display = 'none'; // Ocultar loading
-
+                const tasaMensual = (tasaAnual / 100) / 12;
+                const cuotaMensual = (monto * tasaMensual) / (1 - Math.pow(1 + tasaMensual, -plazo));
                 this.resultadoCalculo.innerHTML = `
-                    <h4>Cálculo de Préstamo:</h4>
-                    <p>Cuota Mensual Estimada: <strong>${cuotaMensual.toFixed(2)}</strong></p>
+                <h4>Cálculo de Préstamo:</h4>
+                <p>Cuota Mensual Estimada: <strong>${cuotaMensual.toFixed(2)}</strong></p>
                 `;
 
                 const confirmacion = confirm(`La cuota mensual será de ${cuotaMensual.toFixed(2)}. ¿Desea crear el préstamo?`);
 
                 if (confirmacion) {
+                    this.showLoading(true); // Mostrar loading
+                    const prestamoId = await this.prestamoService.createPrestamo(idCliente, cuotaMensual, monto, tasaAnual, plazo, fechaDesembolso);
+                    this.showLoading(false); // Ocultar loading
                     this.toast.success('Préstamo creado exitosamente, ID: ' + prestamoId);
                     this.formPrestamo.reset();
                     this.resultadoCalculo.innerHTML = '';
                     await this.cargarPrestamos();
+                } else {
+                    this.toast.error('Creación de préstamo cancelada por el usuario.');
                 }
 
             } catch (error) {
-                this.loading.style.display = 'none'; // Ocultar loading
+                this.showLoading(false); // Ocultar loading
                 this.toast.error('Error al crear el préstamo\n' + error.message);
             }
         });
@@ -110,12 +94,12 @@ class FormPrestamo {
     // Cargar préstamos y mostrarlos en la tabla
     async cargarPrestamos(filtro = 'todos') {
         try {
-            this.loading.style.display = 'block'; // Mostrar loading
-            const listaPrestamos = await this.prestamoService.getAllPrestamos({ estado: filtro });
-            
+            this.showLoading(true); // Mostrar loading
+            const listaPrestamos = await this.prestamoService.getAllPrestamos({estado: filtro});
+
             if (listaPrestamos.length === 0) {
+                this.showLoading(false); // Ocultar loading
                 this.tablaPrestamosBody.innerHTML = '<tr><td colspan="8" style="text-align: center;">No hay préstamos que coincidan con el filtro</td></tr>';
-                this.loading.style.display = 'none'; // Ocultar loading
                 return;
             }
 
@@ -138,12 +122,63 @@ class FormPrestamo {
                 this.tablaPrestamosBody.appendChild(row);
             });
 
-            this.loading.style.display = 'none'; // Ocultar loading
+            this.showLoading(false); // Ocultar loading
         } catch (error) {
-            this.loading.style.display = 'none'; // Ocultar loading
+            this.showLoading(false); // Ocultar loading
             this.toast.error('Error al cargar los préstamos\n' + error.message);
         }
     }
+
+    installEventVerPagos() {
+        window.verPagos = async (prestamoId, clienteId) => {
+            // 1. Cambiar la pestaña activa manualmente
+            document.querySelectorAll('.tab-button').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+            document.querySelector('.tab-button[data-tab="amortizacion"]').classList.add('active');
+            document.getElementById('amortizacion').classList.add('active');
+
+            // 2. Cargar el dropdown de préstamos filtrado por cliente y ESPERAR a que termine
+            await this.lambdaVerPagos(clienteId)
+
+            // 3. Ahora sí, seleccionar el préstamo en el dropdown ya cargado y filtrado
+            const prestamoSelect = document.getElementById('prestamoAmortizacion');
+            prestamoSelect.value = prestamoId;
+
+            // 4. Disparar el evento change para cargar la tabla de amortización
+            // (Asegurándose de que el valor se estableció correctamente)
+            if (prestamoSelect.value === prestamoId) {
+                prestamoSelect.dispatchEvent(new Event('change'));
+            }
+        };
+    }
+
+    // Cargar clientes en el select del formulario de préstamo
+    async cargarClientes() {
+        try {
+            this.showLoading(true); // Mostrar loading
+            const listaClientes = await this.clienteService.getAllClientes()
+
+            const selectCliente = document.getElementById('clientePrestamo');
+            selectCliente.innerHTML = '<option value="">Seleccione un cliente...</option>';
+
+            if (listaClientes === 0) {
+                this.showLoading(false); // Ocultar loading
+                this.toast.error('No hay clientes registrados. Registre un cliente antes de crear un préstamo.');
+                return;
+            }
+
+            listaClientes.forEach(cliente => {
+                const option = document.createElement('option');
+                option.value = cliente.id;
+                option.textContent = `${cliente.nombre} (${cliente.rfc})`;
+                selectCliente.appendChild(option);
+            });
+        } catch (error) {
+            this.showLoading(false); // Ocultar loading
+            console.error('Error al cargar clientes en select:', error);
+        }
+    }
+
 }
 
 export default FormPrestamo;

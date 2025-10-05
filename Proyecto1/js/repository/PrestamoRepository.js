@@ -91,7 +91,7 @@ class PrestamoRepository {
         try {
             const docRef = doc(db, this.collectionName, prestamoId);
             const pagoUpdate = {};
-            pagoUpdate[`pagos.${periodo}`] = Timestamp.fromDate(fechaPago);
+            pagoUpdate[`pagos.${periodo}`] = new Date(fechaPago);
 
             await updateDoc(docRef, pagoUpdate);
         } catch (error) {

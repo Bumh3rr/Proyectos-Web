@@ -60,17 +60,6 @@
                         <span>Amortización</span>
                     </button>
                 </li>
-                <li>
-                    <button class="tab-button" data-tab="tasas">
-                        <svg class="icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none"
-                            stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
-                            <line x1="19" y1="5" x2="5" y2="19"></line>
-                            <circle cx="6.5" cy="6.5" r="2.5"></circle>
-                            <circle cx="17.5" cy="17.5" r="2.5"></circle>
-                        </svg>
-                        <span>Tasas de Interés</span>
-                    </button>
-                </li>
             </ul>
         </nav>
 
@@ -268,50 +257,6 @@
                     </table>
                 </div>
             </section>
-
-            <!-- Sección Tasas de Interés -->
-            <section id="tasas" class="tab-content">
-                <h2>Tasas de Interés y Condiciones</h2>
-
-                <div class="form-container">
-                    <h3>Configurar Tasas</h3>
-                    <form id="formTasas">
-                        <div class="form-group">
-                            <label for="tasaNombre">Nombre de la Tasa:</label>
-                            <input type="text" id="tasaNombre" required>
-                        </div>
-
-                        <div class="form-group">
-                            <label for="tasaPorcentaje">Porcentaje Anual (%):</label>
-                            <input type="number" id="tasaPorcentaje" step="0.01" required>
-                        </div>
-
-                        <div class="form-group">
-                            <label for="tasaDescripcion">Descripción:</label>
-                            <textarea id="tasaDescripcion" rows="3"></textarea>
-                        </div>
-
-                        <button type="submit" class="btn btn-primary">💾 Guardar Tasa</button>
-                    </form>
-                </div>
-
-                <div class="table-container">
-                    <h3>Tasas Registradas</h3>
-                    <table id="tablaTasas">
-                        <thead>
-                            <tr>
-                                <th>Nombre</th>
-                                <th>Porcentaje</th>
-                                <th>Descripción</th>
-                                <th>Acciones</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <!-- Las tasas se cargarán dinámicamente -->
-                        </tbody>
-                    </table>
-                </div>
-            </section>
         </main>
     </div>
 
@@ -385,7 +330,7 @@
     <!-- Toast Notifications -->
     <script src="https://cdn.jsdelivr.net/npm/notyf@3/notyf.min.js"></script>
     <!-- Firebase SDK -->
-    <script type="module" src="js/newApp.js"></script>
+    <script type="module" src="js/App.js"></script>
 </body>
 
 </html>

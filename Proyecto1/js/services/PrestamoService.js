@@ -1,6 +1,6 @@
 import PrestamoRepository from '../repository/PrestamoRepository.js';
 import ClienteRepository from '../repository/ClienteRepository.js';
-import { Timestamp } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-firestore.js";
+import {Timestamp} from "https://www.gstatic.com/firebasejs/10.10.0/firebase-firestore.js";
 
 class PrestamoService {
     constructor() {
@@ -8,14 +8,11 @@ class PrestamoService {
         this.clienteRepository = new ClienteRepository();
     }
 
-    async createPrestamo(idCliente, monto, tasaAnual, plazo, fechaDesembolso) {
+    async createPrestamo(idCliente, cuotaMensual, monto, tasaAnual, plazo, fechaDesembolso) {
         try {
             if (!idCliente || isNaN(monto) || isNaN(tasaAnual) || isNaN(plazo)) {
                 throw new Error('Por favor, complete todos los campos correctamente.');
             }
-
-            const tasaMensual = (tasaAnual / 100) / 12;
-            const cuotaMensual = (monto * tasaMensual) / (1 - Math.pow(1 + tasaMensual, -plazo));
 
             const clienteDoc = await this.clienteRepository.getById(idCliente);
             if (!clienteDoc) {
@@ -29,15 +26,13 @@ class PrestamoService {
                 monto: monto,
                 tasaInteres: tasaAnual,
                 plazo: plazo,
-                fechaDesembolso: Timestamp.fromDate(fechaDesembolso),
+                fechaDesembolso: new Date(fechaDesembolso),
                 cuotaMensual: cuotaMensual,
                 estado: 'Activo',
-                fechaCreacion: Timestamp.now()
+                fechaCreacion: new Date(),
             };
 
-            const prestamoId = await this.prestamoRepository.add(prestamoData);
-            return { prestamoId, cuotaMensual };
-
+            return await this.prestamoRepository.add(prestamoData);
         } catch (error) {
             throw error;
         }
@@ -109,7 +104,7 @@ class PrestamoService {
             // Suponiendo que la info de pagos se guarda en el documento del préstamo
             const todosPagados = tabla.every(p => prestamo.pagos && prestamo.pagos[p.periodo]);
             if (todosPagados) {
-                await this.prestamoRepository.update(prestamoId, { estado: 'Pagado' });
+                await this.prestamoRepository.update(prestamoId, {estado: 'Pagado'});
             }
 
         } catch (error) {

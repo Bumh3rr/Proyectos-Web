@@ -1,31 +1,9 @@
 class FormCliente {
 
-    constructor(clienteService) {
+    constructor(toast, showLoading, clienteService) {
         this.clienteService = clienteService;
-        this.toast = new Notyf({
-            duration: 3000,
-            position: {
-                x: 'right',
-                y: 'top',
-            },
-            types: [
-                {
-                    type: 'warning',
-                    background: 'orange',
-                    icon: {
-                        className: 'material-icons',
-                        tagName: 'i',
-                        text: 'warning'
-                    }
-                },
-                {
-                    type: 'error',
-                    background: 'indianred',
-                    duration: 2000,
-                    dismissible: true
-                }
-            ]
-        });
+        this.toast = toast;
+        this.showLoading = showLoading;
         this.formCliente = document.getElementById('formCliente');
         this.tablaClientesBody = document.querySelector('#tablaClientes tbody');
         this.modalEditCliente = document.getElementById('modalEditarCliente')
@@ -71,7 +49,8 @@ class FormCliente {
     // Cargar clientes y mostrarlos en la tabla
     async cargarClientes() {
         try {
-            this.loading.style.display = 'block';
+            this.showLoading(true);// Mostrar loading
+
             const listaClientes = await this.clienteService.getAllClientes();
             if (listaClientes.length === 0) {
                 this.tablaClientesBody.innerHTML = '<tr><td colspan="6" style="text-align: center;">No hay clientes registrados</td></tr>';
@@ -97,10 +76,9 @@ class FormCliente {
                 this.tablaClientesBody.appendChild(row);
             });
 
-            this.loading.style.display = 'none'; // Ocultar loading
-            await this.actualizarSelectClientesFromPrestamo(listaClientes);
+            this.showLoading(false) // Ocultar loading
         } catch (error) {
-            this.loading.style.display = 'none'; // Ocultar loading
+            this.showLoading(false) // Ocultar loading
             this.toast.error('Error al cargar clientes\n' + error.message);
         }
     }
@@ -110,7 +88,7 @@ class FormCliente {
     installEventShowModalEditarCliente() {
         window.editarCliente = async (id) => {
             try {
-                this.loading.style.display = 'block'; // Mostrar loading
+                this.showLoading(true); // Mostrar loading
                 const cliente = await this.clienteService.getClienteById(id);
 
                 document.getElementById('editarClienteId').value = id;
@@ -119,10 +97,10 @@ class FormCliente {
                 document.getElementById('editarTelefono').value = cliente.telefono;
                 document.getElementById('editarDireccion').value = cliente.direccion;
 
-                this.loading.style.display = 'none'; // Ocultar loading
+                this.showLoading(false); // Ocultar loading
                 this.modalEditCliente.style.display = 'block'; // Mostrar modal de edición
             } catch (error) {
-                this.loading.style.display = 'none'; // Ocultar loading
+                this.showLoading(false); // Ocultar loading
                 this.toast.error('Error al obtener cliente para editar\n' + error.message);
             }
         }
@@ -172,17 +150,21 @@ class FormCliente {
         let clienteAEliminarId = null;
         window.eliminarCliente = async (id) => {
             try {
+                this.showLoading(true); // Mostrar loading
                 // Verificar si tiene préstamos activos
                 const isValidDelete = this.clienteService.validarEliminarCliente(id);
                 if (!isValidDelete) {
+                    this.showLoading(false); // Ocultar loading
                     this.toast.error('No se puede eliminar el cliente porque tiene préstamos activos');
                     return;
                 }
 
                 clienteAEliminarId = id;
+                this.showLoading(false); // Ocultar loading
                 modalConfirmarEliminar.style.display = 'block';
 
             } catch (error) {
+                this.showLoading(false); // Ocultar loading
                 this.toast.error('Error al intentar eliminar el cliente\n' + error.message);
             }
         }
@@ -227,21 +209,6 @@ class FormCliente {
 
     }
 
-    async actualizarSelectClientesFromPrestamo(listaClientes) {
-        const selectCliente = document.getElementById('clientePrestamo');
-        selectCliente.innerHTML = '<option value="">Seleccione un cliente...</option>';
-
-        try {
-            listaClientes.forEach(cliente => {
-                const option = document.createElement('option');
-                option.value = cliente.id;
-                option.textContent = `${cliente.nombre} (${cliente.rfc})`;
-                selectCliente.appendChild(option);
-            });
-        } catch (error) {
-            console.error('Error al cargar clientes en select:', error);
-        }
-    }
 }
 
 export default FormCliente;
