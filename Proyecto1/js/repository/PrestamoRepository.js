@@ -22,7 +22,17 @@ class PrestamoRepository {
             const queryConstraints = [orderBy('fechaCreacion', 'desc')];
 
             if (estado && estado !== 'todos') {
-                queryConstraints.unshift(where('estado', '==', estado));
+                // Mapear los valores de filtro a los valores reales en la base de datos
+                let estadoFiltro = estado;
+                if (estado === 'activo') {
+                    estadoFiltro = 'Activo';
+                } else if (estado === 'pagado') {
+                    estadoFiltro = 'Pagado';
+                } else if (estado === 'vencido') {
+                    estadoFiltro = 'Vencido';
+                }
+                
+                queryConstraints.unshift(where('estado', '==', estadoFiltro));
             }
 
             if (clienteId) {

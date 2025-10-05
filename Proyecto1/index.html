@@ -146,17 +146,30 @@
 
                         <div class="form-group">
                             <label for="montoSolicitado">Monto Solicitado:</label>
-                            <input type="number" id="montoSolicitado" step="0.01" required>
+                            <input type="number" id="montoSolicitado" step="1" required>
                         </div>
 
+                        <!-- RF10: Seleccionar entre 10%, 12% y 14% de tasa de interés -->
                         <div class="form-group">
                             <label for="tasaInteres">Tasa de Interés Anual (%):</label>
-                            <input type="number" id="tasaInteres" step="0.01" required>
+                            <select id="tasaInteres" required>
+                                <option value="">Seleccione una tasa...</option>
+                                <option value="10">10%</option>
+                                <option value="12">12%</option>
+                                <option value="14">14%</option>
+                            </select>
                         </div>
 
+                        <!-- RF11: Seleccionar entre 6, 12, 18 y 24 meses de plazo -->
                         <div class="form-group">
                             <label for="plazoMeses">Plazo (meses):</label>
-                            <input type="number" id="plazoMeses" min="1" required>
+                            <select id="plazoMeses" required>
+                                <option value="">Seleccione un plazo...</option>
+                                <option value="6">6 meses</option>
+                                <option value="12">12 meses</option>
+                                <option value="18">18 meses</option>
+                                <option value="24">24 meses</option>
+                            </select>
                         </div>
 
                         <div class="form-group">
@@ -174,6 +187,12 @@
 
                 <div class="table-container">
                     <h3>Lista de Préstamos</h3>
+
+                    <!-- RF12: Campo de búsqueda por cliente -->
+                    <div class="search-container">
+                        <input type="text" id="buscarPrestamo" placeholder="Buscar préstamos por nombre de cliente">
+                    </div>
+                    
                     <div class="filter-container">
                         <label>
                             <input type="radio" name="filtroPrestamo" value="todos" checked> Todos

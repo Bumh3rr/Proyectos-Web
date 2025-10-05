@@ -36,6 +36,7 @@ class FormPrestamo {
     initEventListeners() {
         this.installEventRegistrarPrestamo(); // <- Evento para registrar préstamo
         this.installEventFiltrarPrestamos(); // <- Evento para filtrar préstamos
+        this.installEventBuscarPrestamo(); // <- Evento para buscar prestamos asociados a un cliente
     }
 
     // Evento para registrar préstamo
@@ -86,6 +87,25 @@ class FormPrestamo {
         });
     }
 
+    // RF12: Búsqueda de préstamos por cliente
+    installEventBuscarPrestamo() {
+        const buscarPrestamo = document.getElementById('buscarPrestamo');
+
+        buscarPrestamo.addEventListener('keyup', () => {
+            const termino = buscarPrestamo.value.toLowerCase();
+            const rows = this.tablaPrestamosBody.getElementsByTagName('tr');
+
+            for (let i = 0; i < rows.length; i++) {
+                const nombreCliente = rows[i].getElementsByTagName('td')[0]?.textContent.toLowerCase() || '';
+
+                if (nombreCliente.includes(termino)) {
+                    rows[i].style.display = '';
+                } else {
+                    rows[i].style.display = 'none';
+                }
+            }
+        });
+    }
 
     // Cargar préstamos y mostrarlos en la tabla
     async cargarPrestamos(filtro = 'todos') {
