@@ -2,6 +2,7 @@
 import ClienteService from './services/ClienteService.js';
 // Imports Formularios
 import FormCliente from './form/FormCliente.js';
+import FormPrestamo from './form/FormPrestamo.js';
 
 class App {
     constructor() {
@@ -9,6 +10,7 @@ class App {
         this.clienteService = new ClienteService();
         // Formularios
         this.formCliente = new FormCliente(this.clienteService);
+        this.formPrestamo = new FormPrestamo(this.prestamoService);
 
         this.installEventManejoPestana();
         this.formCliente.cargarClientes(); // <- Cargar clientes al iniciar la app
@@ -29,7 +31,7 @@ class App {
                     if (tab.dataset.tab === 'clientes') {
                         app.formCliente.cargarClientes();
                     }else if (tab.dataset.tab === 'prestamos') {
-
+                        app.formPrestamo.cargarPrestamos();
                     }else if (tab.dataset.tab === 'amortizacion') {
 
                     }else if ( tab.dataset.tab === 'tasas') {

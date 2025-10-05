@@ -1,6 +1,7 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-app.js";
 import { getFirestore } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-firestore.js";
 
+// Your web app's Firebase configuration
 const firebaseConfig = {
     apiKey: "AIzaSyCN525uEX6vJ7eC4hmpXCeeXWQPuD6kKJk",
     authDomain: "prueba-crud-3dfce.firebaseapp.com",
@@ -10,8 +11,6 @@ const firebaseConfig = {
     appId: "1:710530342207:web:626ca4f6cd5c17e1e4078a",
 };
 
-// Inicializar Firebase
+// Initialize Firebase
 const app = initializeApp(firebaseConfig);
-const db = getFirestore(app);
-
-export { db };
+export const db = getFirestore(app);
