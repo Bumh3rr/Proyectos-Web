@@ -159,6 +159,7 @@ class FormCliente {
                 await this.cargarClientes(); // Recargar la lista de clientes
             } catch (error) {
                 this.toast.error('Error al actualizar el cliente\n' + error.message);
+                this.loading.style.display = 'none'; 
             }
         });
     }

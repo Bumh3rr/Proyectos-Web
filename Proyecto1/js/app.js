@@ -59,7 +59,7 @@ window.app = app; // <- Hacerla global para los event listeners
 
     // Disparar el evento change para cargar la tabla
     prestamoAmortizacionSelect.dispatchEvent(new Event('change'));
-}
+
     // Cambiar a la pestaña de amortización
     document.querySelector('.tab-button[data-tab="amortizacion"]').click();
 
@@ -68,4 +68,3 @@ window.app = app; // <- Hacerla global para los event listeners
 
     // Disparar el evento change para cargar la tabla
     prestamoAmortizacionSelect.dispatchEvent(new Event('change'));
-}
