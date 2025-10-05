@@ -66,6 +66,10 @@ class FormAmortizacion {
 
             this.tablaAmortizacionBody.innerHTML = '';
             tabla.forEach(pago => {
+                const fechaPagoReal = prestamo.pagos && prestamo.pagos[pago.periodo] 
+                    ? prestamo.pagos[pago.periodo].toDate().toLocaleDateString('es-MX') 
+                    : 'Pendiente';
+
                 const row = document.createElement('tr');
                 row.innerHTML = `
                     <td>${pago.periodo}</td>
@@ -75,9 +79,9 @@ class FormAmortizacion {
                     <td>${pago.amortizacionCapital.toFixed(2)}</td>
                     <td>${pago.cuotaTotal.toFixed(2)}</td>
                     <td>${pago.saldoFinal.toFixed(2)}</td>
-                    <td>${pago.fechaPagoReal ? pago.fechaPagoReal.toLocaleDateString('es-MX') : 'Pendiente'}</td>
+                    <td>${fechaPagoReal}</td>
                     <td>
-                        ${!pago.fechaPagoReal ? `<button class="btn btn-success btn-small" onclick="registrarPago('${prestamo.id}', ${pago.periodo})">Pagar</button>` : 'Pagado'}
+                        ${fechaPagoReal === 'Pendiente' ? `<button class="btn btn-success btn-small" onclick="registrarPago('${prestamo.id}', ${pago.periodo})">Pagar</button>` : 'Pagado'}
                     </td>
                 `;
                 this.tablaAmortizacionBody.appendChild(row);

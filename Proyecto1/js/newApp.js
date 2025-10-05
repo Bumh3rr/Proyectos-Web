@@ -76,3 +76,14 @@ window.verPagos = async (prestamoId, clienteId) => {
         prestamoSelect.dispatchEvent(new Event('change'));
     }
 };
+
+window.registrarPago = async (prestamoId, periodo) => {
+    try {
+        await app.prestamoService.realizarPago(prestamoId, periodo);
+        app.formAmortizacion.toast.success('Pago registrado correctamente.');
+        await app.formAmortizacion.mostrarTablaAmortizacion(prestamoId);
+    } catch (error) {
+        app.formAmortizacion.toast.error(`Error al registrar el pago: ${error.message}`);
+        console.error(error);
+    }
+};

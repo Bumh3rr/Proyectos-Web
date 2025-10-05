@@ -97,6 +97,25 @@ class PrestamoService {
         }
         return tabla;
     }
+
+    async realizarPago(prestamoId, periodo) {
+        try {
+            await this.prestamoRepository.registrarPago(prestamoId, periodo, new Date());
+
+            // Opcional: Verificar si todos los pagos están hechos para cambiar el estado del préstamo
+            const prestamo = await this.getPrestamoById(prestamoId);
+            const tabla = this.generarTablaAmortizacion(prestamo);
+
+            // Suponiendo que la info de pagos se guarda en el documento del préstamo
+            const todosPagados = tabla.every(p => prestamo.pagos && prestamo.pagos[p.periodo]);
+            if (todosPagados) {
+                await this.prestamoRepository.update(prestamoId, { estado: 'Pagado' });
+            }
+
+        } catch (error) {
+            throw error;
+        }
+    }
 }
 
 export default PrestamoService;

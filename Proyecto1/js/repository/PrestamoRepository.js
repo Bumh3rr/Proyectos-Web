@@ -86,6 +86,18 @@ class PrestamoRepository {
             throw error;
         }
     }
+
+    async registrarPago(prestamoId, periodo, fechaPago) {
+        try {
+            const docRef = doc(db, this.collectionName, prestamoId);
+            const pagoUpdate = {};
+            pagoUpdate[`pagos.${periodo}`] = Timestamp.fromDate(fechaPago);
+
+            await updateDoc(docRef, pagoUpdate);
+        } catch (error) {
+            throw error;
+        }
+    }
 }
 
 export default PrestamoRepository;
