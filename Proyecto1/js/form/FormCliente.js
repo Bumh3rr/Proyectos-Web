@@ -1,214 +1,292 @@
 class FormCliente {
+  constructor(toast, showLoading, clienteService) {
+    this.clienteService = clienteService;
+    this.toast = toast;
+    this.showLoading = showLoading;
+    this.formCliente = document.getElementById("formCliente");
+    this.tablaClientesBody = document.querySelector("#tablaClientes tbody");
+    this.modalEditCliente = document.getElementById("modalEditarCliente");
+    this.loading = document.getElementById("loading");
+    this.paginacionContainer = document.getElementById("paginacionClientes");
 
-    constructor(toast, showLoading, clienteService) {
-        this.clienteService = clienteService;
-        this.toast = toast;
-        this.showLoading = showLoading;
-        this.formCliente = document.getElementById('formCliente');
-        this.tablaClientesBody = document.querySelector('#tablaClientes tbody');
-        this.modalEditCliente = document.getElementById('modalEditarCliente')
-        this.loading = document.getElementById('loading');
-        this.initEventListeners();
+    this.listaClientesCompleta = [];
+    this.listaClientesFiltrada = [];
+    this.currentPage = 1;
+    this.rowsPerPage = 5; // Puedes ajustar este valor
+
+    this.initEventListeners();
+  }
+
+  initEventListeners() {
+    this.installEventRegistrarCliente();
+    this.installEventShowModalEditarCliente();
+    this.installEventEliminarCliente();
+    this.installEventBuscarCliente();
+  }
+
+  // RF01: Registrar nuevo cliente
+  installEventRegistrarCliente() {
+    this.formCliente.addEventListener("submit", async (e) => {
+      e.preventDefault();
+
+      const nombre = document.getElementById("nombre").value;
+      const rfc = document.getElementById("rfc").value;
+      const telefono = document.getElementById("telefono").value;
+      const direccion = document.getElementById("direccion").value;
+
+      try {
+        this.showLoading(true);
+        let id = await this.clienteService.createCliente(
+          nombre,
+          rfc,
+          telefono,
+          direccion
+        );
+        this.showLoading(false);
+
+        this.toast.success("Cliente registrado exitosamente, ID: " + id);
+        this.formCliente.reset();
+
+        await this.cargarClientes(); // Recarga toda la lista
+      } catch (error) {
+        this.showLoading(false);
+        this.toast.error("Error al registrar el cliente\n" + error.message);
+      }
+    });
+  }
+
+  // Cargar clientes y prepararlos para la paginación
+  async cargarClientes() {
+    try {
+      this.showLoading(true);
+      this.listaClientesCompleta = await this.clienteService.getAllClientes();
+      this.listaClientesFiltrada = this.listaClientesCompleta;
+      this.currentPage = 1;
+      this.render();
+      this.showLoading(false);
+    } catch (error) {
+      this.showLoading(false);
+      this.toast.error("Error al cargar clientes\n" + error.message);
+    }
+  }
+
+  // Renderiza la tabla y los controles de paginación
+  render() {
+    this.renderTable();
+    this.renderPaginationControls();
+  }
+
+  // RF02: Mostrar lista paginada de clientes
+  renderTable() {
+    this.tablaClientesBody.innerHTML = "";
+
+    if (this.listaClientesFiltrada.length === 0) {
+      this.tablaClientesBody.innerHTML =
+        '<tr><td colspan="6" style="text-align: center;">No hay clientes que coincidan con la búsqueda</td></tr>';
+      return;
     }
 
-    initEventListeners() {
-        this.installEventRegistrarCliente(); // <- Evento para registrar cliente
-        this.installEventShowModalEditarCliente(); // <- Evento para mostrar modal de edición de cliente
-        this.installEventEliminarCliente(); // <- Evento para eliminar cliente
-        this.installEventBuscarCliente(); // <- Evento para buscar cliente
-    }
+    const startIndex = (this.currentPage - 1) * this.rowsPerPage;
+    const endIndex = startIndex + this.rowsPerPage;
+    const clientesPagina = this.listaClientesFiltrada.slice(
+      startIndex,
+      endIndex
+    );
 
-    // RF01: Registrar nuevo cliente
-    // Evento para registrar cliente
-    installEventRegistrarCliente() {
-        this.formCliente.addEventListener('submit', async (e) => {
-            e.preventDefault();
+    clientesPagina.forEach((cliente) => {
+      const fecha = cliente.fechaRegistro.toLocaleDateString("es-MX");
+      const row = document.createElement("tr");
+      row.innerHTML = `
+                <td>${cliente.nombre}</td>
+                <td>${cliente.rfc}</td>
+                <td>${cliente.telefono}</td>
+                <td>${cliente.direccion}</td>
+                <td>${fecha}</td>
+                <td class="acciones_customer">
+                    <button type="button" class="btn btn-outline-success" onclick="editarCliente('${cliente.id}')">Editar</button>
+                    <button type="button" class="btn btn-primary btn-sm" onclick="eliminarCliente('${cliente.id}')">Eliminar</button>
+                </td>
+            `;
+      this.tablaClientesBody.appendChild(row);
+    });
+  }
 
-            const nombre = document.getElementById('nombre').value;
-            const rfc = document.getElementById('rfc').value;
-            const telefono = document.getElementById('telefono').value;
-            const direccion = document.getElementById('direccion').value;
+  renderPaginationControls() {
+    this.paginacionContainer.innerHTML = "";
+    const totalPages = Math.ceil(
+      this.listaClientesFiltrada.length / this.rowsPerPage
+    );
 
-            try {
-                this.loading.style.display = 'block'; // Mostrar loading
-                let id = await this.clienteService.createCliente(nombre, rfc, telefono, direccion);
+    if (totalPages <= 1) return; // No mostrar controles si solo hay una página
 
-                this.loading.style.display = 'none'; // Ocultar loading
-                this.toast.success('Cliente registrado exitosamente, ID: ' + id);
-                this.formCliente.reset();
+    const prevButton = document.createElement("button");
+    prevButton.textContent = "Anterior";
+    prevButton.className = "btn";
+    prevButton.disabled = this.currentPage === 1;
+    prevButton.addEventListener("click", () => {
+      if (this.currentPage > 1) {
+        this.currentPage--;
+        this.render();
+      }
+    });
 
-                await this.cargarClientes();
-            } catch (error) {
-                this.loading.style.display = 'none'; // Ocultar loading
-                this.toast.error('Error al registrar el cliente\n' + error.message);
-            }
-        });
-    }
+    const pageInfo = document.createElement("span");
+    pageInfo.textContent = `Página ${this.currentPage} de ${totalPages}`;
+    pageInfo.className = "page-info";
 
-    // RF02: Mostrar lista de clientes
-    // Cargar clientes y mostrarlos en la tabla
-    async cargarClientes() {
-        try {
-            this.showLoading(true);// Mostrar loading
+    const nextButton = document.createElement("button");
+    nextButton.textContent = "Siguiente";
+    nextButton.className = "btn";
+    nextButton.disabled = this.currentPage === totalPages;
+    nextButton.addEventListener("click", () => {
+      if (this.currentPage < totalPages) {
+        this.currentPage++;
+        this.render();
+      }
+    });
 
-            const listaClientes = await this.clienteService.getAllClientes();
-            if (listaClientes.length === 0) {
-                this.tablaClientesBody.innerHTML = '<tr><td colspan="6" style="text-align: center;">No hay clientes registrados</td></tr>';
-                return;
-            }
+    this.paginacionContainer.appendChild(prevButton);
+    this.paginacionContainer.appendChild(pageInfo);
+    this.paginacionContainer.appendChild(nextButton);
+  }
 
-            this.tablaClientesBody.innerHTML = '';
-            listaClientes.forEach(cliente => {
-                console.log(cliente);
-                const fecha = cliente.fechaRegistro.toLocaleDateString('es-MX');
-                const row = document.createElement('tr');
-                row.innerHTML = `
-                    <td>${cliente.nombre}</td>
-                    <td>${cliente.rfc}</td>
-                    <td>${cliente.telefono}</td>
-                    <td>${cliente.direccion}</td>
-                    <td>${fecha}</td>
-                    <td class="acciones_customer">
-                        <button type="button" class="btn btn-outline-success" onclick="editarCliente('${cliente.id}')">Editar</button>
-                        <button type="button" class="btn btn-primary btn-sm" onclick="eliminarCliente('${cliente.id}')">Eliminar</button>
-                    </td>
-                `;
-                this.tablaClientesBody.appendChild(row);
-            });
+  // RF03: Modificar datos de cliente
+  installEventShowModalEditarCliente() {
+    window.editarCliente = async (id) => {
+      try {
+        this.showLoading(true);
+        const cliente = await this.clienteService.getClienteById(id);
 
-            this.showLoading(false) // Ocultar loading
-        } catch (error) {
-            this.showLoading(false) // Ocultar loading
-            this.toast.error('Error al cargar clientes\n' + error.message);
-        }
-    }
+        document.getElementById("editarClienteId").value = id;
+        document.getElementById("editarNombre").value = cliente.nombre;
+        document.getElementById("editarRfc").value = cliente.rfc;
+        document.getElementById("editarTelefono").value = cliente.telefono;
+        document.getElementById("editarDireccion").value = cliente.direccion;
 
-    // RF03: Modificar datos de cliente
-    // Evento para mostrar modal de edición de cliente
-    installEventShowModalEditarCliente() {
-        window.editarCliente = async (id) => {
-            try {
-                this.showLoading(true); // Mostrar loading
-                const cliente = await this.clienteService.getClienteById(id);
+        this.showLoading(false);
+        this.modalEditCliente.style.display = "block";
+      } catch (error) {
+        this.showLoading(false);
+        this.toast.error(
+          "Error al obtener cliente para editar\n" + error.message
+        );
+      }
+    };
 
-                document.getElementById('editarClienteId').value = id;
-                document.getElementById('editarNombre').value = cliente.nombre;
-                document.getElementById('editarRfc').value = cliente.rfc;
-                document.getElementById('editarTelefono').value = cliente.telefono;
-                document.getElementById('editarDireccion').value = cliente.direccion;
+    const formEditarCliente = document.getElementById("formEditarCliente");
+    const modalEditarCliente = document.getElementById("modalEditarCliente");
+    const closeButton = modalEditarCliente.querySelector(".close-button");
 
-                this.showLoading(false); // Ocultar loading
-                this.modalEditCliente.style.display = 'block'; // Mostrar modal de edición
-            } catch (error) {
-                this.showLoading(false); // Ocultar loading
-                this.toast.error('Error al obtener cliente para editar\n' + error.message);
-            }
-        }
+    closeButton.addEventListener("click", () => {
+      modalEditarCliente.style.display = "none";
+    });
+    window.addEventListener("click", (event) => {
+      if (event.target === modalEditarCliente) {
+        modalEditarCliente.style.display = "none";
+      }
+    });
 
-        const formEditarCliente = document.getElementById('formEditarCliente');
-        const modalEditarCliente = document.getElementById('modalEditarCliente');
-        const closeButton = document.querySelector('.close-button');
+    formEditarCliente.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const id = document.getElementById("editarClienteId").value;
 
-        closeButton.addEventListener('click', () => {
-            modalEditarCliente.style.display = 'none';
-        });
-        window.addEventListener('click', (event) => {
-            if (event.target === modalEditarCliente) {
-                modalEditarCliente.style.display = 'none';
-            }
-        });
-
-        formEditarCliente.addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const id = document.getElementById('editarClienteId').value;
-
-            try {
-                this.loading.style.display = 'block'; // Mostrar loading
+      try {
+        this.showLoading(true);
                 await this.clienteService.updateCliente(id, {
                     nombre: document.getElementById('editarNombre').value,
-                    rfc: document.getElementById('editarRfc').value,
                     telefono: document.getElementById('editarTelefono').value,
                     direccion: document.getElementById('editarDireccion').value
                 });
-                this.loading.style.display = 'block'; // Mostrar loading
-                this.toast.success('Cliente actualizado exitosamente'); // Notificación de éxito
-                document.getElementById('modalEditarCliente').style.display = 'none'; // Ocultar modal de edición
+        this.showLoading(false);
+        this.toast.success("Cliente actualizado exitosamente");
+        modalEditarCliente.style.display = "none";
 
-                await this.cargarClientes(); // Recargar la lista de clientes
-            } catch (error) {
-                this.toast.error('Error al actualizar el cliente\n' + error.message);
-                this.loading.style.display = 'none'; 
-            }
-        });
-    }
+        await this.cargarClientes();
+      } catch (error) {
+        this.showLoading(false);
+        this.toast.error("Error al actualizar el cliente\n" + error.message);
+      }
+    });
+  }
 
-    // RF04: Eliminar cliente (solo si no tiene préstamos activos)
-    installEventEliminarCliente() {
-        const btnConfirmarEliminar = document.getElementById('btnConfirmarEliminar');
-        const modalConfirmarEliminar = document.getElementById('modalConfirmarEliminar');
-        const btnCancelarEliminar = document.getElementById('btnCancelarEliminar');
-        let clienteAEliminarId = null;
-        window.eliminarCliente = async (id) => {
-            try {
-                this.showLoading(true); // Mostrar loading
-                // Verificar si tiene préstamos activos
-                const isValidDelete = this.clienteService.validarEliminarCliente(id);
-                if (!isValidDelete) {
-                    this.showLoading(false); // Ocultar loading
-                    this.toast.error('No se puede eliminar el cliente porque tiene préstamos activos');
-                    return;
-                }
+  // RF04: Eliminar cliente
+  installEventEliminarCliente() {
+    const btnConfirmarEliminar = document.getElementById(
+      "btnConfirmarEliminar"
+    );
+    const modalConfirmarEliminar = document.getElementById(
+      "modalConfirmarEliminar"
+    );
+    const btnCancelarEliminar = document.getElementById("btnCancelarEliminar");
+    let clienteAEliminarId = null;
 
-                clienteAEliminarId = id;
-                this.showLoading(false); // Ocultar loading
-                modalConfirmarEliminar.style.display = 'block';
-
-            } catch (error) {
-                this.showLoading(false); // Ocultar loading
-                this.toast.error('Error al intentar eliminar el cliente\n' + error.message);
-            }
+    window.eliminarCliente = async (id) => {
+      try {
+        this.showLoading(true);
+        const puedeEliminar = await this.clienteService.validarEliminarCliente(
+          id
+        );
+        if (!puedeEliminar) {
+          this.showLoading(false);
+          this.toast.error(
+            "No se puede eliminar el cliente porque tiene préstamos activos"
+          );
+          return;
         }
 
-        btnCancelarEliminar.addEventListener('click', () => {
-            modalConfirmarEliminar.style.display = 'none';
-        });
+        clienteAEliminarId = id;
+        this.showLoading(false);
+        modalConfirmarEliminar.style.display = "block";
+      } catch (error) {
+        this.showLoading(false);
+        this.toast.error(
+          "Error al intentar eliminar el cliente\n" + error.message
+        );
+      }
+    };
 
-        btnConfirmarEliminar.addEventListener('click', async () => {
-            try {
-                await this.clienteService.eliminarCliente(clienteAEliminarId);
-                this.toast.success('Cliente eliminado exitosamente');
-                this.cargarClientes();
-            } catch (error) {
-                this.toast.error('Error al eliminar el cliente\n' + error.message);
-            }
-            modalConfirmarEliminar.style.display = 'none';
-            clienteAEliminarId = null;
-        });
+    btnCancelarEliminar.addEventListener("click", () => {
+      modalConfirmarEliminar.style.display = "none";
+    });
 
-    }
+    btnConfirmarEliminar.addEventListener("click", async () => {
+      if (clienteAEliminarId) {
+        try {
+          await this.clienteService.eliminarCliente(clienteAEliminarId);
+          this.toast.success("Cliente eliminado exitosamente");
+          await this.cargarClientes(); // Recarga la lista
+        } catch (error) {
+          this.toast.error("Error al eliminar el cliente\n" + error.message);
+        }
+        modalConfirmarEliminar.style.display = "none";
+        clienteAEliminarId = null;
+      }
+    });
+  }
 
-    // RF05: Búsqueda de clientes
-    installEventBuscarCliente() {
-        const buscarClienteInput = document.getElementById('buscarClienteInput');
+  // RF05: Búsqueda de clientes
+  installEventBuscarCliente() {
+    const buscarClienteInput = document.getElementById("buscarClienteInput");
 
-        buscarClienteInput.addEventListener('keyup', () => {
-            const termino = buscarClienteInput.value.toLowerCase();
-            const rows = this.tablaClientesBody.getElementsByTagName('tr');
+    buscarClienteInput.addEventListener("keyup", () => {
+      const termino = buscarClienteInput.value.toLowerCase().trim();
 
-            for (let i = 0; i < rows.length; i++) {
-                const nombre = rows[i].getElementsByTagName('td')[0].textContent.toLowerCase();
-                const rfc = rows[i].getElementsByTagName('td')[1].textContent.toLowerCase();
+      if (termino === "") {
+        this.listaClientesFiltrada = this.listaClientesCompleta;
+      } else {
+        this.listaClientesFiltrada = this.listaClientesCompleta.filter(
+          (cliente) => {
+            const nombre = cliente.nombre.toLowerCase();
+            const rfc = cliente.rfc.toLowerCase();
+            return nombre.includes(termino) || rfc.includes(termino);
+          }
+        );
+      }
 
-                if (nombre.includes(termino) || rfc.includes(termino)) {
-                    rows[i].style.display = '';
-                } else {
-                    rows[i].style.display = 'none';
-                }
-            }
-        });
-
-    }
-
+      this.currentPage = 1;
+      this.render();
+    });
+  }
 }
 
 export default FormCliente;
