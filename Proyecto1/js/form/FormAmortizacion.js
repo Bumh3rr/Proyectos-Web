@@ -6,7 +6,6 @@ class FormAmortizacion {
         this.infoPrestamoDiv = document.getElementById('infoPrestamo');
         this.toast = toast
         this.showLoading = showLoading;
-        this.loading = document.getElementById('loading');
         this.initEventListeners();
     }
 
@@ -85,7 +84,7 @@ class FormAmortizacion {
                     <td>
                         ${fechaPagoReal === 'Pendiente'
                     ? `<div class="card-pedding-date">
-                            <p style="display: block;cursor: default; font-size: 14px; font-weight: bold">Pendiente</p>
+                           <div>Pendiente</div>
                         </div>`
                     
                     : `<div class="card-success-date">

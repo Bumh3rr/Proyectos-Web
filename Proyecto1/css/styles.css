@@ -23,10 +23,11 @@ html{
     margin: 0;
     padding: 0;
     box-sizing: border-box;
+    font-family: var(--font-family), serif;
+    border: none;
 }
 
 body {
-    font-family: var(--font-family);
     background-image: var(--background-gradient);
     color: var(--text-color);
     line-height: 1.6;
@@ -190,7 +191,6 @@ h3 {
     border: 1px solid var(--border-color);
     border-radius: 8px;
     font-size: 1rem;
-    font-family: var(--font-family);
     transition: all var(--transition-speed) ease;
     background: #fff;
 }
@@ -416,14 +416,20 @@ tbody tr:hover {
 #rfc, #editarRfc {
     text-transform: uppercase;
 }
-
+.acciones_customer{
+    display: flex;
+    gap: 8px;
+}
 
 .card-success-date{
-    background: linear-gradient(to right, #a6d8f8, #ffffff);
-    color: #343434;
-    padding: 6px 8px;
-    border-radius: var(--border-radius);
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    background-color: #88bdec;
+    color: white;
+    border-radius: 12px;
+    border: 1px solid #3dafff;
 }
 
 .card-pedding-date{
@@ -434,5 +440,38 @@ tbody tr:hover {
     background-color: rgb(238, 233, 150);
     color: #4b4b4b;
     border-radius: 12px;
+    padding: 5px 10px;
     border: 1px solid #ffee82;
+}
+
+.btn-register-customer {
+    padding: 17px 40px;
+    border-radius: var(--border-radius);
+    cursor: pointer;
+    border: 0;
+    background-color: white;
+    box-shadow: rgb(0 0 0 / 5%) 0 0 8px;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    font-size: 15px;
+    transition: all 0.5s ease;
+    font-weight: 600;
+    display: block;
+    margin: 0 auto;
+}
+
+.btn-register-customer:hover {
+    letter-spacing: 3px;
+    background-color: hsl(0, 0%, 31%);
+    color: hsl(0, 0%, 100%);
+    box-shadow: rgb(80, 80, 80) 0px 7px 29px 0px;
+}
+
+.btn-register-customer:active {
+    letter-spacing: 3px;
+    background-color: hsl(0, 0%, 22%);
+    color: hsl(0, 0%, 100%);
+    box-shadow: rgb(51, 51, 51) 0px 0px 0px 0px;
+    transform: translateY(5px);
+    transition: 100ms;
 }

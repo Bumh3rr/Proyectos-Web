@@ -1,16 +1,17 @@
 // Importar Cliente y ClienteRepository
 import ClienteRepository from '../repository/ClienteRepository.js';
+import PrestamoRepository from '../repository/PrestamoRepository.js';
 import Cliente from '../models/Cliente.js';
-import {Timestamp} from "https://www.gstatic.com/firebasejs/10.10.0/firebase-firestore.js";
 
 class ClienteService {
     constructor() {
+        this.prestamosRepository = new PrestamoRepository()
         this.repository = new ClienteRepository();
     }
 
     capitalizeString(str) {
         if (!str || typeof str !== 'string' || !str.trim()) return '';
-        
+
         const trimmed = str.trim();
         const normalized = trimmed.replace(/\s+/g, ' ');
         return normalized.toLowerCase().replace(/\b\w/g, l => l.toUpperCase());
@@ -23,7 +24,7 @@ class ClienteService {
         }
 
         const nombreTrimmed = nombre.trim();
-        const nombreRegex = /^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]+$/; 
+        const nombreRegex = /^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]+$/;
         if (!nombreRegex.test(nombreTrimmed)) {
             throw new Error('El nombre solo puede contener letras y espacios');
         }
@@ -124,7 +125,24 @@ class ClienteService {
 
     // Validar si se puede eliminar el cliente (si tiene préstamos activos)
     async validarEliminarCliente(id) {
-        return true; // Cambiar según la lógica real
+        const filtros = {
+            estado: 'todos',
+            clienteId: id
+        };
+
+        const prestamos = await this.prestamosRepository.getAll(filtros);
+
+        if (prestamos === undefined) {
+            throw new Error('Error al verificar préstamos del cliente');
+        }
+
+        if (prestamos.length > 0) {
+            const tienePrestamosActivos = prestamos.some(prestamo => prestamo.estado === 'Activo' || prestamo.estado === 'Vencido');
+            if (tienePrestamosActivos) {
+                return { canDelete: false, message: 'No se puede eliminar el cliente porque tiene préstamos activos o vencidos.' };
+            }
+        }
+        return { canDelete: true };
     }
 
     // Eliminar cliente
