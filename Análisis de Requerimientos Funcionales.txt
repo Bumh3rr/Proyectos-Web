@@ -45,8 +45,10 @@ CUMPLIDO
 RF12: El sistema debe consultar y mostrar todos los préstamos asociados a un cliente específico.
 CUMPLIDO
 
+---------------
+ROBERTA:
 RF13: El sistema debe mostrar el estado de cada préstamo (Activo, Pagado, Vencido).
-CUMPLIDO
+REVISAR
 
 RF14: El sistema debe permitir la consulta del detalle y la tabla de amortización de cualquier préstamo activo.
 CUMPLIDO: La pestaña "Amortización" funciona como la vista de detalle, mostrando la información del préstamo y su plan de pagos completo.
