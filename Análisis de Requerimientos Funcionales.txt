@@ -45,8 +45,8 @@ CUMPLIDO
 RF12: El sistema debe consultar y mostrar todos los préstamos asociados a un cliente específico.
 CUMPLIDO
 
-ROBERTA:
 RF13: El sistema debe mostrar el estado de cada préstamo (Activo, Pagado, Vencido).
+CUMPLIDO
 
 RF14: El sistema debe permitir la consulta del detalle y la tabla de amortización de cualquier préstamo activo.
 CUMPLIDO: La pestaña "Amortización" funciona como la vista de detalle, mostrando la información del préstamo y su plan de pagos completo.
@@ -59,6 +59,8 @@ RF16: El sistema debe actualizar el estado del préstamo a "Pagado" cuando el sa
 CUMPLIDO
 
 4. Requerimientos de Reportes
+--------------
+DAVID:
 
 RF17: El sistema debe generar un reporte de préstamos vencidos, basándose en la fecha programada de pago sin registro de pago real.
 NO IMPLEMENTADO
@@ -68,12 +70,5 @@ NO IMPLEMENTADO
 
 RF19: El sistema debe mostrar un resumen financiero de todos los préstamos (Monto Total Prestado, Intereses Totales a Recibir).
 NO IMPLEMENTADO: No hay una función que genere un informe con el Monto Total Prestado y los Intereses Totales a Recibir.
-
-
-
-Resumen General
-
-Tu proyecto tiene una base sólida y cumple con muchos de los requerimientos principales, especialmente en la gestión de clientes y la creación y simulación de préstamos. Las áreas con más funcionalidades faltantes son la modificación/eliminación de préstamos y pagos, la lógica de negocio para el cambio de estados (de activo a vencido/pagado) y la generación de reportes consolidados.
-
-Espero que este análisis detallado te sea de gran ayuda. ¡Es un buen punto de partida
+-----------
 
