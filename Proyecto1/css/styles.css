@@ -416,3 +416,23 @@ tbody tr:hover {
 #rfc, #editarRfc {
     text-transform: uppercase;
 }
+
+
+.card-success-date{
+    background: linear-gradient(to right, #a6d8f8, #ffffff);
+    color: #343434;
+    padding: 6px 8px;
+    border-radius: var(--border-radius);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+}
+
+.card-pedding-date{
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    background-color: rgb(238, 233, 150);
+    color: #4b4b4b;
+    border-radius: 12px;
+    border: 1px solid #ffee82;
+}

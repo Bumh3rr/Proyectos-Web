@@ -1,5 +1,5 @@
 class FormAmortizacion {
-    constructor(toast,showLoading, prestamoService) {
+    constructor(toast, showLoading, prestamoService) {
         this.prestamoService = prestamoService;
         this.prestamoAmortizacionSelect = document.getElementById('prestamoAmortizacion');
         this.tablaAmortizacionBody = document.querySelector('#tablaAmortizacion tbody');
@@ -61,8 +61,8 @@ class FormAmortizacion {
                 <p><strong>Cuota Mensual:</strong> ${prestamo.cuotaMensual.toFixed(2)}</p>
             `;
 
-            const toDecimal = (numero) =>{
-               return  numero.toLocaleString('es-MX', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+            const toDecimal = (numero) => {
+                return numero.toLocaleString('es-MX', {minimumFractionDigits: 2, maximumFractionDigits: 2});
             }
 
 
@@ -81,7 +81,22 @@ class FormAmortizacion {
                     <td>${toDecimal(pago.amortizacionCapital)}</td>
                     <td>${toDecimal(pago.cuotaTotal)}</td>
                     <td>${toDecimal(pago.saldoFinal)}</td>
-                    <td>${fechaPagoReal}</td>
+                    
+                    <td>
+                        ${fechaPagoReal === 'Pendiente'
+                    ? `<div class="card-pedding-date">
+                            <p style="display: block;cursor: default; font-size: 14px; font-weight: bold">Pendiente</p>
+                        </div>`
+                    
+                    : `<div class="card-success-date">
+                        <div class="card-body p-2">
+                            <strong>Pagado</strong><br>
+                            <span>${fechaPagoReal}</span>
+                        </div>
+                     </div>`
+                    }
+                    </td>
+                    
                     <td>
                         ${fechaPagoReal === 'Pendiente' ? `<button class="btn btn-success btn-small" onclick="registrarPago('${prestamo.id}', ${pago.periodo})">Pagar</button>` : 'Pagado'}
                     </td>
