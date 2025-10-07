@@ -545,3 +545,27 @@ tbody tr:hover {
     font-weight: bold;
     font-size: 0.9rem;
 }
+/* --- PDF Preview Styles --- */
+#pdfPreviewContainer {
+    background: var(--surface-color);
+    padding: 1.5rem;
+    border-radius: var(--border-radius);
+    border: 1px solid var(--border-color);
+    box-shadow: 0 5px 15px var(--shadow-color);
+}
+
+#pdfPreviewContainer h4 {
+    margin-bottom: 1rem;
+    color: var(--primary-color);
+    font-weight: 600;
+}
+
+#pdfPreview {
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+#nombreClientePDF {
+    background-color: #f5f5f5;
+    cursor: not-allowed;
+}
