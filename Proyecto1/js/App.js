@@ -128,6 +128,26 @@ class App {
               try {
                 app.showLoading(true);
 
+                const imageToBase64 = async (url) => {
+                  const response = await fetch(url);
+                  const blob = await response.blob();
+                  return new Promise((resolve, reject) => {
+                    const reader = new FileReader();
+                    reader.onloadend = () => resolve(reader.result);
+                    reader.onerror = reject;
+                    reader.readAsDataURL(blob);
+                  });
+                };
+
+                const logoUrl = '../logo.png';
+                let logoBase64 = null;
+                try {
+                  logoBase64 = await imageToBase64(logoUrl);
+                } catch (error) {
+                  console.error("Error al cargar el logo:", error);
+                }
+
+
                 const prestamo = await app.prestamoService.getPrestamoById(
                   prestamoId
                 );
@@ -147,6 +167,9 @@ class App {
                 const pageWidth = doc.internal.pageSize.width;
 
                 // --- ENCABEZADO ---
+                if (logoBase64) {
+                  doc.addImage(logoBase64, 'PNG', 15, 15, 30, 15);
+                }
                 doc.setFont("helvetica", "bold");
                 doc.setFontSize(20);
                 doc.setTextColor(40, 40, 40);
@@ -156,7 +179,7 @@ class App {
 
                 doc.setLineWidth(0.5);
                 doc.setDrawColor(44, 62, 80);
-                doc.line(20, 28, pageWidth - 20, 28);
+                doc.line(20, 35, pageWidth - 20, 35);
 
                 // --- INFORMACIÓN DEL PRÉSTAMO ---
                 doc.setFont("helvetica", "normal");
@@ -167,8 +190,8 @@ class App {
                   cliente.nombre || cliente.nombreCliente || "N/D"
                 }`;
                 const infoRFC = `RFC: ${cliente.rfc || "N/D"}`;
-                doc.text(infoCliente, 20, 40);
-                doc.text(infoRFC, pageWidth - 20, 40, { align: "right" });
+                doc.text(infoCliente, 20, 45);
+                doc.text(infoRFC, pageWidth - 20, 45, { align: "right" });
 
                 const monto = parseFloat(prestamo.monto) || 0;
                 const tasa = parseFloat(prestamo.tasaInteres) || 0;
@@ -184,9 +207,9 @@ class App {
                 const infoTasa = `Tasa de Interés Anual: ${tasa}%`;
                 const infoPlazo = `Plazo: ${plazo} meses`;
 
-                doc.text(infoMonto, 20, 50);
-                doc.text(infoTasa, pageWidth / 2, 50, { align: "center" });
-                doc.text(infoPlazo, pageWidth - 20, 50, { align: "right" });
+                doc.text(infoMonto, 20, 55);
+                doc.text(infoTasa, pageWidth / 2, 55, { align: "center" });
+                doc.text(infoPlazo, pageWidth - 20, 55, { align: "right" });
 
                 // --- TABLA DE AMORTIZACIÓN ---
                 const tablaAmortizacion =
