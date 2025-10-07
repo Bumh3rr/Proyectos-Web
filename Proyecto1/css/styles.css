@@ -508,3 +508,40 @@ tbody tr:hover {
     transform: translateY(5px);
     transition: 100ms;
 }
+
+.btn-small {
+    padding: 6px 12px;
+    font-size: 0.85rem;
+    border-radius: 6px;
+    min-width: 90px;
+}
+
+.btn-secondary {
+    background-color: #6c757d;
+    color: white;
+    cursor: not-allowed;
+    opacity: 0.6;
+}
+
+.btn-secondary:disabled {
+    opacity: 0.4;
+}
+
+.card-overdue-date{
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    background-color: #f8d7da;
+    color: #721c24;
+    border-radius: 12px;
+    padding: 5px 10px;
+    border: 1px solid #f5c6cb;
+    font-weight: bold;
+}
+
+.estado-pagado {
+    color: #333;
+    font-weight: bold;
+    font-size: 0.9rem;
+}

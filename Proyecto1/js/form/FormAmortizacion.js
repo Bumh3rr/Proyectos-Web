@@ -65,11 +65,47 @@ class FormAmortizacion {
             }
 
 
+            // Encontrar el primer período pendiente de pago
+            let siguientePeriodoAPagar = null;
+            for (let i = 1; i <= prestamo.plazo; i++) {
+                if (!prestamo.pagos || !prestamo.pagos[i]) {
+                    siguientePeriodoAPagar = i;
+                    break;
+                }
+            }
+
+            // Fecha actual para comparaciones
+            const fechaActual = new Date();
+            fechaActual.setHours(0, 0, 0, 0);
+
+            // Determinar si todo el préstamo está vencido
+            const prestamoVencido = prestamo.estado === 'Vencido';
+
             this.tablaAmortizacionBody.innerHTML = '';
             tabla.forEach(pago => {
-                const fechaPagoReal = prestamo.pagos && prestamo.pagos[pago.periodo]
+                const estaPagado = prestamo.pagos && prestamo.pagos[pago.periodo];
+                const fechaPagoReal = estaPagado 
                     ? prestamo.pagos[pago.periodo].toDate().toLocaleDateString('es-MX')
-                    : 'Pendiente';
+                    : null;
+
+                // Determinar estado del pago
+                let estadoPago = 'Pendiente';
+                let claseEstado = 'card-pedding-date';
+                
+                if (estaPagado) {
+                    estadoPago = 'Pagado';
+                    claseEstado = 'card-success-date';
+                } else {
+                    const fechaProgramada = new Date(pago.fechaProgramada);
+                    fechaProgramada.setHours(0, 0, 0, 0);
+                    
+                    if (prestamoVencido || fechaActual > fechaProgramada) {
+                        estadoPago = 'Vencido';
+                        claseEstado = 'card-overdue-date';
+                    }
+                }
+
+                const puedeRealizarse = pago.periodo === siguientePeriodoAPagar;
 
                 const row = document.createElement('tr');
                 row.innerHTML = `
@@ -82,22 +118,19 @@ class FormAmortizacion {
                     <td>${toDecimal(pago.saldoFinal)}</td>
                     
                     <td>
-                        ${fechaPagoReal === 'Pendiente'
-                    ? `<div class="card-pedding-date">
-                           <div>Pendiente</div>
-                        </div>`
-                    
-                    : `<div class="card-success-date">
-                        <div class="card-body p-2">
-                            <strong>Pagado</strong><br>
-                            <span>${fechaPagoReal}</span>
+                        <div class="${claseEstado}">
+                            ${estaPagado 
+                                ? `<div class="card-body p-2">
+                                    <strong>Pagado</strong><br>
+                                    <span>${fechaPagoReal}</span>
+                                   </div>`
+                                : `<div>${estadoPago}</div>`
+                            }
                         </div>
-                     </div>`
-                    }
                     </td>
                     
                     <td>
-                        ${fechaPagoReal === 'Pendiente' ? `<button class="btn btn-success btn-small" onclick="registrarPago('${prestamo.id}', ${pago.periodo})">Pagar</button>` : 'Pagado'}
+                        ${this.generarBotonPago(prestamo.id, pago.periodo, estaPagado, puedeRealizarse)}
                     </td>
                 `;
                 this.tablaAmortizacionBody.appendChild(row);
@@ -112,12 +145,28 @@ class FormAmortizacion {
         window.registrarPago = async (prestamoId, periodo) => {
             try {
                 await this.prestamoService.realizarPago(prestamoId, periodo);
-                this.toast.success('Pago registrado correctamente.');
+                this.toast.success(`Pago del período ${periodo} registrado correctamente.`);
                 await this.mostrarTablaAmortizacion(prestamoId);
             } catch (error) {
                 this.toast.error(`Error al registrar el pago: ${error.message}`);
             }
         };
+    }
+
+    generarBotonPago(prestamoId, periodo, estaPagado, puedeRealizarse) {
+        if (estaPagado) {
+            return '<span class="estado-pagado">Pagado</span>';
+        }
+        
+        if (puedeRealizarse) {
+            return `<button class="btn btn-success btn-small" onclick="registrarPago('${prestamoId}', ${periodo})" title="Pagar período ${periodo}">
+                        Pagar
+                    </button>`;
+        }
+        
+        return `<button class="btn btn-secondary btn-small" disabled title="Debe pagar los períodos anteriores primero">
+                    Bloqueado
+                </button>`;
     }
 
     limpiarVista() {
