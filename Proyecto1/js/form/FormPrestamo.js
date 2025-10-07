@@ -95,6 +95,10 @@ class FormPrestamo {
     async cargarPrestamos(filtro = 'todos') {
         try {
             this.showLoading(true); // Mostrar loading
+            
+            // Actualizar estados antes de cargar la lista
+            await this.prestamoService.actualizarTodosLosEstados();
+            
             const listaPrestamos = await this.prestamoService.getAllPrestamos({estado: filtro});
 
             if (listaPrestamos.length === 0) {

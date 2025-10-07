@@ -97,17 +97,77 @@ class PrestamoService {
         try {
             await this.prestamoRepository.registrarPago(prestamoId, periodo, new Date());
 
-            // Opcional: Verificar si todos los pagos están hechos para cambiar el estado del préstamo
+            // Actualizar el estado del préstamo después del pago
+            await this.actualizarEstadoPrestamo(prestamoId);
+
+        } catch (error) {
+            throw error;
+        }
+    }
+
+    // Método para determinar y actualizar el estado de un préstamo
+    async actualizarEstadoPrestamo(prestamoId) {
+        try {
             const prestamo = await this.getPrestamoById(prestamoId);
             const tabla = this.generarTablaAmortizacion(prestamo);
-
-            // Suponiendo que la info de pagos se guarda en el documento del préstamo
+            
+            // Verificar si todos los pagos están hechos
             const todosPagados = tabla.every(p => prestamo.pagos && prestamo.pagos[p.periodo]);
             if (todosPagados) {
                 await this.prestamoRepository.update(prestamoId, {estado: 'Pagado'});
+                return;
+            }
+
+            // Si no está pagado completamente, verificar si está vencido o activo
+            const fechaActual = new Date();
+            fechaActual.setHours(0, 0, 0, 0); // Normalizar a medianoche para comparación de fechas
+
+            // Obtener la última fecha programada del préstamo
+            const ultimaFechaProgramada = new Date(Math.max(...tabla.map(pago => pago.fechaProgramada.getTime())));
+            ultimaFechaProgramada.setHours(0, 0, 0, 0);
+
+            // Calcular el día siguiente a la última fecha programada
+            const diaSiguienteUltimaFecha = new Date(ultimaFechaProgramada);
+            diaSiguienteUltimaFecha.setDate(diaSiguienteUltimaFecha.getDate() + 1);
+
+            // Determinar el nuevo estado
+            let nuevoEstado = 'Activo';
+            
+            if (fechaActual >= diaSiguienteUltimaFecha) {
+                nuevoEstado = 'Vencido';
+            }
+
+            // Actualizar el estado si ha cambiado
+            if (prestamo.estado !== nuevoEstado) {
+                await this.prestamoRepository.update(prestamoId, {estado: nuevoEstado});
             }
 
         } catch (error) {
+            console.error('Error al actualizar estado del préstamo:', error);
+            throw error;
+        }
+    }
+
+    // Método para actualizar estados de todos los préstamos activos y vencidos
+    async actualizarTodosLosEstados() {
+        try {
+            // Obtener todos los préstamos que no están pagados
+            const prestamosActivos = await this.getAllPrestamos({estado: 'activo'});
+            const prestamosVencidos = await this.getAllPrestamos({estado: 'vencido'});
+            
+            const todosLosPrestamos = [...prestamosActivos, ...prestamosVencidos];
+
+            for (const prestamo of todosLosPrestamos) {
+                await this.actualizarEstadoPrestamo(prestamo.id);
+            }
+
+            return {
+                procesados: todosLosPrestamos.length,
+                mensaje: `Se procesaron ${todosLosPrestamos.length} préstamos`
+            };
+
+        } catch (error) {
+            console.error('Error al actualizar todos los estados:', error);
             throw error;
         }
     }

@@ -57,6 +57,7 @@ class App {
 
         this.installEventManejoPestana();//  <- Manejo de pestañas
         this.formCliente.cargarClientes(); // <- Cargar clientes al iniciar la app
+        this.actualizarEstadosPrestamosAlIniciar(); // <- Actualizar estados de préstamos al iniciar
     }
 
     installEventManejoPestana() {
@@ -83,6 +84,15 @@ class App {
                 });
             });
         });
+    }
+
+    // Actualizar estados de préstamos al iniciar la aplicación
+    async actualizarEstadosPrestamosAlIniciar() {
+        try {
+            await this.prestamoService.actualizarTodosLosEstados();
+        } catch (error) {
+            console.error('Error al actualizar estados al iniciar:', error);
+        }
     }
 }
 
