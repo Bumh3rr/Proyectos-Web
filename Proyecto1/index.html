@@ -15,7 +15,8 @@
     <!-- Notyf Toast -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/notyf@3/notyf.min.css">
 
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.1.3/dist/css/bootstrap.min.css" integrity="sha384-MCw98/SFnGE8fJT3GXwEOngsV7Zt27NXFoaoApmYm81iuXoPkFOJwJ8ERdknLPMO" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.1.3/dist/css/bootstrap.min.css"
+        integrity="sha384-MCw98/SFnGE8fJT3GXwEOngsV7Zt27NXFoaoApmYm81iuXoPkFOJwJ8ERdknLPMO" crossorigin="anonymous">
 
 </head>
 
@@ -104,7 +105,7 @@
                     <div class="search-container">
                         <input type="text" id="buscarClienteInput" placeholder="Buscar por nombre o RFC">
                     </div>
-                    <table id="tablaClientes">
+                    <table id="tablaClientes" class="tabla-card">
                         <thead>
                             <tr>
                                 <th>Nombre</th>
@@ -185,7 +186,7 @@
                     <div class="search-container">
                         <input type="text" id="buscarPrestamo" placeholder="Buscar préstamos por nombre de cliente">
                     </div>
-                    
+
                     <div class="filter-container">
                         <label>
                             <input type="radio" name="filtroPrestamo" value="todos" checked> Todos
@@ -265,9 +266,17 @@
     </div>
 
     <!-- Loading -->
-    <div id="loading" class="loading-overlay" style="display: none;">
-        <div class="spinner"></div>
+    <div id="loading" class="loading-overlay" style="display: block;">
+        <div class="spinner">
+            <div class="dot"></div>
+            <div class="dot"></div>
+            <div class="dot"></div>
+            <div class="dot"></div>
+            <div class="dot"></div>
+        </div>
     </div>
+
+
 
     <!-- Modales -->
     <div id="modalEditarCliente" class="modal">
@@ -333,7 +342,9 @@
 
 
     <!-- Boop -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.1.3/dist/js/bootstrap.min.js" integrity="sha384-ChfqqxuZUCnJSK3+MXmPNIyE6ZbWh2IMqE241rYiqJxyMiZ6OW/JmZQ5stwEULTy" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.1.3/dist/js/bootstrap.min.js"
+        integrity="sha384-ChfqqxuZUCnJSK3+MXmPNIyE6ZbWh2IMqE241rYiqJxyMiZ6OW/JmZQ5stwEULTy"
+        crossorigin="anonymous"></script>
 
     <!-- Toast Notifications -->
     <script src="https://cdn.jsdelivr.net/npm/notyf@3/notyf.min.js"></script>

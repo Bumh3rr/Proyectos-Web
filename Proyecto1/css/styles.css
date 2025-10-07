@@ -375,10 +375,6 @@ tbody tr:hover {
     transform: scale(1.01);
 }
 
-.acciones_customer .btn{
-    display: flex;
-    gap: 8px;
-}
 
 .loading-overlay {
     display: none;
@@ -396,18 +392,51 @@ tbody tr:hover {
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
-    border: 8px solid var(--light-gray-color);
-    border-top: 8px solid var(--primary-color);
-    border-radius: 50%;
     width: 60px;
     height: 60px;
-    animation: spin 1s linear infinite;
+}
+
+.spinner .dot {
+ position: absolute;
+ inset: 0;
+ display: flex;
+ justify-content: center;
+}
+
+.spinner .dot::after {
+ content: "";
+ width: 7px;
+ height: 7px;
+ border-radius: 50%;
+ background-color: white;
 }
 
 @keyframes spin {
-    0% { transform: rotate(0deg); }
-    100% { transform: rotate(360deg); }
+ to {
+  transform: rotate(360deg);
+ }
 }
+
+.spinner .dot {
+ animation: spin 2s infinite;
+}
+
+.spinner .dot:nth-child(2) {
+ animation-delay: 100ms;
+}
+
+.spinner .dot:nth-child(3) {
+ animation-delay: 200ms;
+}
+
+.spinner .dot:nth-child(4) {
+ animation-delay: 300ms;
+}
+
+.spinner .dot:nth-child(5) {
+ animation-delay: 400ms;
+}
+
 
 #nombre, #editarNombre, #direccion, #editarDireccion {
     text-transform: capitalize;
@@ -418,7 +447,11 @@ tbody tr:hover {
 }
 .acciones_customer{
     display: flex;
-    gap: 8px;
+    margin-top: 11px;
+    flex-direction: row;
+    text-align: center;
+    justify-content: center;
+    gap: 10px;
 }
 
 .card-success-date{
