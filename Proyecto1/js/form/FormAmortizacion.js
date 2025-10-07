@@ -4,8 +4,16 @@ class FormAmortizacion {
         this.prestamoAmortizacionSelect = document.getElementById('prestamoAmortizacion');
         this.tablaAmortizacionBody = document.querySelector('#tablaAmortizacion tbody');
         this.infoPrestamoDiv = document.getElementById('infoPrestamo');
+        this.btnGenerarPDF = document.getElementById('btnGenerarPDF');
+        this.pdfViewer = document.getElementById('pdfViewer');
+        this.pdfIframe = document.getElementById('pdfIframe');
         this.toast = toast
         this.showLoading = showLoading;
+        
+        // Store current loan and amortization table data
+        this.currentPrestamo = null;
+        this.currentTabla = null;
+        
         this.initEventListeners();
     }
 
@@ -17,6 +25,11 @@ class FormAmortizacion {
             } else {
                 this.limpiarVista();
             }
+        });
+        
+        // Event listener for PDF generation button
+        this.btnGenerarPDF.addEventListener('click', () => {
+            this.generarPDF();
         });
     }
 
@@ -51,6 +64,13 @@ class FormAmortizacion {
             this.showLoading(true);
             const prestamo = await this.prestamoService.getPrestamoById(prestamoId);
             const tabla = this.prestamoService.generarTablaAmortizacion(prestamo);
+            
+            // Store current data for PDF generation
+            this.currentPrestamo = prestamo;
+            this.currentTabla = tabla;
+            
+            // Show PDF button
+            this.btnGenerarPDF.style.display = 'inline-block';
 
             this.infoPrestamoDiv.innerHTML = `
                 <h4>Información del Préstamo</h4>
@@ -172,6 +192,136 @@ class FormAmortizacion {
     limpiarVista() {
         this.infoPrestamoDiv.innerHTML = '';
         this.tablaAmortizacionBody.innerHTML = '';
+        this.btnGenerarPDF.style.display = 'none';
+        this.pdfViewer.style.display = 'none';
+        this.currentPrestamo = null;
+        this.currentTabla = null;
+    }
+    
+    async generarPDF() {
+        if (!this.currentPrestamo || !this.currentTabla) {
+            this.toast.error('No hay datos para generar el PDF');
+            return;
+        }
+
+        try {
+            this.showLoading(true);
+            
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF();
+            
+            const prestamo = this.currentPrestamo;
+            const tabla = this.currentTabla;
+            const tasaMensual = (prestamo.tasaInteres / 100) / 12;
+            
+            // Load and add logo
+            const logoPath = 'img/logo.svg';
+            let logoLoaded = false;
+            
+            try {
+                const response = await fetch(logoPath);
+                const svgText = await response.text();
+                const logoDataUrl = 'data:image/svg+xml;base64,' + btoa(svgText);
+                
+                // Add logo centered at top
+                doc.addImage(logoDataUrl, 'SVG', 85, 10, 40, 16);
+                logoLoaded = true;
+            } catch (error) {
+                console.warn('No se pudo cargar el logo, continuando sin él');
+            }
+            
+            const startY = logoLoaded ? 35 : 20;
+            
+            // Title
+            doc.setFontSize(18);
+            doc.setFont(undefined, 'bold');
+            doc.text('Tabla de Amortización', 105, startY, { align: 'center' });
+            
+            // Client name
+            doc.setFontSize(12);
+            doc.setFont(undefined, 'normal');
+            doc.text(`Cliente: ${prestamo.nombreCliente}`, 14, startY + 10);
+            
+            // Loan parameters section
+            doc.setFontSize(11);
+            doc.setFont(undefined, 'bold');
+            doc.text('Parámetros del Préstamo:', 14, startY + 20);
+            
+            doc.setFont(undefined, 'normal');
+            doc.text(`Monto: $${prestamo.monto.toLocaleString('es-MX', {minimumFractionDigits: 2, maximumFractionDigits: 2})}`, 14, startY + 27);
+            doc.text(`Tasa de Interés Anual: ${prestamo.tasaInteres}%`, 14, startY + 33);
+            doc.text(`Plazo: ${prestamo.plazo} meses`, 14, startY + 39);
+            doc.text(`Tasa de Interés Mensual: ${(tasaMensual * 100).toFixed(4)}%`, 14, startY + 45);
+            
+            // Prepare table data
+            const tableData = tabla.map(pago => [
+                pago.periodo,
+                pago.saldoInicial.toLocaleString('es-MX', {minimumFractionDigits: 2, maximumFractionDigits: 2}),
+                pago.interes.toLocaleString('es-MX', {minimumFractionDigits: 2, maximumFractionDigits: 2}),
+                pago.amortizacionCapital.toLocaleString('es-MX', {minimumFractionDigits: 2, maximumFractionDigits: 2}),
+                pago.cuotaTotal.toLocaleString('es-MX', {minimumFractionDigits: 2, maximumFractionDigits: 2}),
+                pago.saldoFinal.toLocaleString('es-MX', {minimumFractionDigits: 2, maximumFractionDigits: 2})
+            ]);
+            
+            // Calculate totals
+            const totalInteres = tabla.reduce((sum, pago) => sum + pago.interes, 0);
+            const totalAmortizacion = tabla.reduce((sum, pago) => sum + pago.amortizacionCapital, 0);
+            const totalCuota = tabla.reduce((sum, pago) => sum + pago.cuotaTotal, 0);
+            
+            // Add totals row
+            tableData.push([
+                { content: 'TOTALES', styles: { fontStyle: 'bold', halign: 'center' } },
+                '',
+                { content: totalInteres.toLocaleString('es-MX', {minimumFractionDigits: 2, maximumFractionDigits: 2}), styles: { fontStyle: 'bold' } },
+                { content: totalAmortizacion.toLocaleString('es-MX', {minimumFractionDigits: 2, maximumFractionDigits: 2}), styles: { fontStyle: 'bold' } },
+                { content: totalCuota.toLocaleString('es-MX', {minimumFractionDigits: 2, maximumFractionDigits: 2}), styles: { fontStyle: 'bold' } },
+                ''
+            ]);
+            
+            // Generate table using autoTable
+            doc.autoTable({
+                startY: startY + 52,
+                head: [['Período', 'Saldo Inicial', 'Interés', 'Amortización (Capital)', 'Cuota Total', 'Saldo Final']],
+                body: tableData,
+                theme: 'striped',
+                headStyles: {
+                    fillColor: [37, 99, 235],
+                    textColor: 255,
+                    fontStyle: 'bold',
+                    halign: 'center'
+                },
+                bodyStyles: {
+                    fontSize: 9,
+                    halign: 'right'
+                },
+                columnStyles: {
+                    0: { halign: 'center', cellWidth: 20 }
+                },
+                alternateRowStyles: {
+                    fillColor: [245, 247, 250]
+                },
+                margin: { top: 10, left: 14, right: 14 }
+            });
+            
+            // Generate PDF as blob URL
+            const pdfBlob = doc.output('blob');
+            const pdfUrl = URL.createObjectURL(pdfBlob);
+            
+            // Display in iframe
+            this.pdfIframe.src = pdfUrl;
+            this.pdfViewer.style.display = 'block';
+            
+            // Scroll to PDF viewer
+            this.pdfViewer.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            
+            this.showLoading(false);
+            this.toast.success('PDF generado exitosamente');
+            
+        } catch (error) {
+            this.showLoading(false);
+            this.toast.error('Error al generar el PDF: ' + error.message);
+            console.error('Error generando PDF:', error);
+        }
     }
 }
 
