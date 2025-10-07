@@ -255,6 +255,11 @@
 
                 <div class="table-container">
                     <h3>Plan de Pagos</h3>
+                    <div style="margin-bottom: 15px;">
+                        <button id="btnGenerarPDF" class="btn btn-primary" style="display: none;">
+                            📄 Generar PDF
+                        </button>
+                    </div>
                     <table id="tablaAmortizacion">
                         <thead>
                             <tr>
@@ -273,6 +278,12 @@
                             <!-- La tabla de amortización se cargará dinámicamente -->
                         </tbody>
                     </table>
+                </div>
+                
+                <!-- Contenedor para el iframe del PDF -->
+                <div id="pdfViewer" class="pdf-viewer-container" style="display: none; margin-top: 20px;">
+                    <h3>Vista Previa del PDF</h3>
+                    <iframe id="pdfIframe" style="width: 100%; height: 600px; border: 1px solid #ddd; border-radius: 8px;"></iframe>
                 </div>
             </section>
 
@@ -385,6 +396,11 @@
 
     <!-- Toast Notifications -->
     <script src="https://cdn.jsdelivr.net/npm/notyf@3/notyf.min.js"></script>
+    
+    <!-- jsPDF Libraries for PDF Generation -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js"></script>
+    
     <!-- Firebase SDK -->
     <script type="module" src="js/App.js"></script>
 </body>
