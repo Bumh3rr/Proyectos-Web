@@ -128,88 +128,169 @@ class App {
               try {
                 app.showLoading(true);
 
-                // Obtener el préstamo
                 const prestamo = await app.prestamoService.getPrestamoById(
                   prestamoId
                 );
-                console.log("Datos del préstamo:", prestamo);
-
-                // Detectar el campo correcto del cliente
                 const idCliente = prestamo.clienteId || prestamo.idCliente;
-
                 if (!idCliente) {
                   throw new Error(
                     "El préstamo no tiene asociado un clienteId o idCliente."
                   );
                 }
-
-                // Obtener el cliente
                 const cliente = await app.clienteService.getClienteById(
                   idCliente
                 );
-                console.log("Datos del cliente:", cliente);
 
-                // Crear el documento PDF
                 const { jsPDF } = window.jspdf;
                 const doc = new jsPDF();
+                const pageHeight = doc.internal.pageSize.height;
+                const pageWidth = doc.internal.pageSize.width;
 
-                // Encabezado
-                doc.setFontSize(16);
-                doc.text("Tabla de Amortización", 20, 20);
+                // --- ENCABEZADO ---
+                doc.setFont("helvetica", "bold");
+                doc.setFontSize(20);
+                doc.setTextColor(40, 40, 40);
+                doc.text("Reporte de Amortización", pageWidth / 2, 22, {
+                  align: "center",
+                });
 
-                doc.setFontSize(12);
-                doc.text(
-                  `Cliente: ${
-                    cliente.nombre || cliente.nombreCliente || "N/D"
-                  }`,
-                  20,
-                  30
-                );
-                doc.text(`Monto: $${prestamo.monto || 0}`, 20, 40);
-                doc.text(`Tasa: ${prestamo.tasaInteres || 0}%`, 20, 50);
-                doc.text(`Plazo: ${prestamo.plazo || 0} meses`, 20, 60);
+                doc.setLineWidth(0.5);
+                doc.setDrawColor(44, 62, 80);
+                doc.line(20, 28, pageWidth - 20, 28);
 
-                // Generar tabla de amortización
+                // --- INFORMACIÓN DEL PRÉSTAMO ---
+                doc.setFont("helvetica", "normal");
+                doc.setFontSize(11);
+                doc.setTextColor(80, 80, 80);
+
+                const infoCliente = `Cliente: ${
+                  cliente.nombre || cliente.nombreCliente || "N/D"
+                }`;
+                const infoRFC = `RFC: ${cliente.rfc || "N/D"}`;
+                doc.text(infoCliente, 20, 40);
+                doc.text(infoRFC, pageWidth - 20, 40, { align: "right" });
+
+                const monto = parseFloat(prestamo.monto) || 0;
+                const tasa = parseFloat(prestamo.tasaInteres) || 0;
+                const plazo = parseInt(prestamo.plazo, 10) || 0;
+
+                const infoMonto = `Monto del Préstamo: ${monto.toLocaleString(
+                  "es-MX",
+                  {
+                    minimumFractionDigits: 2,
+                    maximumFractionDigits: 2,
+                  }
+                )}`;
+                const infoTasa = `Tasa de Interés Anual: ${tasa}%`;
+                const infoPlazo = `Plazo: ${plazo} meses`;
+
+                doc.text(infoMonto, 20, 50);
+                doc.text(infoTasa, pageWidth / 2, 50, { align: "center" });
+                doc.text(infoPlazo, pageWidth - 20, 50, { align: "right" });
+
+                // --- TABLA DE AMORTIZACIÓN ---
                 const tablaAmortizacion =
                   app.prestamoService.generarTablaAmortizacion(prestamo);
-
                 const head = [
                   [
-                    "Período",
-                    "Fecha Programada",
+                    "#",
+                    "Fecha",
                     "Saldo Inicial",
                     "Interés",
                     "Capital",
-                    "Cuota Total",
+                    "Cuota",
                     "Saldo Final",
                   ],
                 ];
                 const body = tablaAmortizacion.map((pago) => [
                   pago.periodo,
                   pago.fechaProgramada instanceof Date
-                    ? pago.fechaProgramada.toLocaleDateString()
+                    ? pago.fechaProgramada.toLocaleDateString("es-ES")
                     : pago.fechaProgramada,
-                  pago.saldoInicial.toFixed(2),
-                  pago.interes.toFixed(2),
-                  pago.amortizacionCapital.toFixed(2),
-                  pago.cuotaTotal.toFixed(2),
-                  pago.saldoFinal.toFixed(2),
+                  `${pago.saldoInicial.toLocaleString("es-MX", {
+                    minimumFractionDigits: 2,
+                  })}`,
+                  `${pago.interes.toLocaleString("es-MX", {
+                    minimumFractionDigits: 2,
+                  })}`,
+                  `${pago.amortizacionCapital.toLocaleString("es-MX", {
+                    minimumFractionDigits: 2,
+                  })}`,
+                  `${pago.cuotaTotal.toLocaleString("es-MX", {
+                    minimumFractionDigits: 2,
+                  })}`,
+                  `${pago.saldoFinal.toLocaleString("es-MX", {
+                    minimumFractionDigits: 2,
+                  })}`,
                 ]);
 
-                // Agregar tabla al PDF
                 doc.autoTable({
                   head: head,
                   body: body,
-                  startY: 70,
+                  startY: 65,
+                  theme: "grid", // 'striped', 'grid', 'plain'
+                  headStyles: {
+                    fillColor: [44, 62, 80], // Color de fondo del encabezado
+                    textColor: [255, 255, 255], // Color del texto del encabezado
+                    fontStyle: "bold",
+                  },
+                  alternateRowStyles: {
+                    fillColor: [245, 245, 245], // Color de fondo de filas alternas
+                  },
+                  styles: {
+                    cellPadding: 3,
+                    fontSize: 9,
+                    valign: "middle",
+                    halign: "center",
+                  },
+                  columnStyles: {
+                    2: { halign: "right" },
+                    3: { halign: "right" },
+                    4: { halign: "right" },
+                    5: { halign: "right" },
+                    6: { halign: "right" },
+                  },
                 });
 
-                // Mostrar PDF en modal
+                // --- PIE DE PÁGINA ---
+                const pageCount = doc.internal.getNumberOfPages();
+                for (let i = 1; i <= pageCount; i++) {
+                  doc.setPage(i);
+                  doc.setFont("helvetica", "italic");
+                  doc.setFontSize(8);
+                  doc.setTextColor(150, 150, 150);
+
+                  const fechaGeneracion = new Date().toLocaleDateString(
+                    "es-ES",
+                    {
+                      year: "numeric",
+                      month: "long",
+                      day: "numeric",
+                    }
+                  );
+
+                  doc.text(
+                    `Generado el ${fechaGeneracion}`,
+                    20,
+                    pageHeight - 10
+                  );
+                  doc.text(
+                    `Página ${i} de ${pageCount}`,
+                    pageWidth - 20,
+                    pageHeight - 10,
+                    { align: "right" }
+                  );
+                }
+
+                // --- MOSTRAR PDF ---
                 const pdfData = doc.output("datauristring");
                 pdfViewer.src = pdfData;
                 modalPdf.style.display = "block";
               } catch (error) {
                 console.error("Error al generar el PDF:", error);
-                app.toast.error(error.message || "Error al generar el PDF");
+                app.toast.error(
+                  error.message || "Ocurrió un error al generar el PDF."
+                );
               } finally {
                 app.showLoading(false);
               }
