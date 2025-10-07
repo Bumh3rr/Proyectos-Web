@@ -143,11 +143,8 @@ class PrestamoService {
                 nuevoEstado = 'Vencido';
             }
 
-            console.log(`[Debug] Préstamo ID: ${prestamoId} | Pagos Vencidos: ${hayPagosVencidos} | Estado Actual: '${prestamo.estado}' | Nuevo Estado: '${nuevoEstado}'`);
-
             // Actualizar el estado si ha cambiado
             if (prestamo.estado !== nuevoEstado) {
-                console.log(`[Debug] Actualizando estado de ${prestamoId} a '${nuevoEstado}'`);
                 await this.prestamoRepository.update(prestamoId, {estado: nuevoEstado});
             }
 

@@ -71,6 +71,6 @@ RF18: El sistema debe alertar al gestor si un cliente intenta solicitar un nuevo
 IMPLEMENTADO
 
 RF19: El sistema debe mostrar un resumen financiero de todos los préstamos (Monto Total Prestado, Intereses Totales a Recibir).
-NO IMPLEMENTADO: No hay una función que genere un informe con el Monto Total Prestado y los Intereses Totales a Recibir.
+IMPLEMENTADO: No hay una función que genere un informe con el Monto Total Prestado y los Intereses Totales a Recibir.
 -----------
 
