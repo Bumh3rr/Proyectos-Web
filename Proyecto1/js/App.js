@@ -7,6 +7,8 @@ import FormCliente from './form/FormCliente.js';
 import FormPrestamo from './form/FormPrestamo.js';
 import FormAmortizacion from './form/FormAmortizacion.js';
 
+import FormReportes from "./form/FormReportes.js";
+
 class App {
     constructor() {
         // Servicios
@@ -49,6 +51,8 @@ class App {
         // Formularios
         this.formCliente = new FormCliente(this.toast, this.showLoading, this.clienteService);
         this.formAmortizacion = new FormAmortizacion(this.toast, this.showLoading, this.prestamoService);
+        this.formReportes = new FormReportes(this.prestamoService, this.showLoading);
+
         // Funcion Lambda para ver pagos desde FormPrestamo
         const lambdaVerPagos = async (id) => {
             await this.formAmortizacion.init(id);
@@ -80,6 +84,8 @@ class App {
                         app.formPrestamo.cargarClientes()
                     } else if (tab.dataset.tab === 'amortizacion') {
                         app.formAmortizacion.init();
+                    } else if (tab.dataset.tab === 'reportes') {
+                        app.formReportes.cargarReporteVencidos();
                     }
                 });
             });

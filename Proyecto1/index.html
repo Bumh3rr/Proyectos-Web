@@ -64,6 +64,19 @@
                         <span>Amortización</span>
                     </button>
                 </li>
+                <li>
+                    <button class="tab-button" data-tab="reportes">
+                        <svg class="icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M8 6h13"></path>
+                            <path d="M8 12h13"></path>
+                            <path d="M8 18h13"></path>
+                            <path d="M3 6h.01"></path>
+                            <path d="M3 12h.01"></path>
+                            <path d="M3 18h.01"></path>
+                        </svg>
+                        <span>Reportes</span>
+                    </button>
+                </li>
             </ul>
         </nav>
 
@@ -262,6 +275,30 @@
                     </table>
                 </div>
             </section>
+
+            <!-- Sección Reportes -->
+            <section id="reportes" class="tab-content">
+                <h2>Reporte de Préstamos Vencidos</h2>
+                <div class="table-container">
+                    <table id="tabla-reportes-vencidos" class="tabla-card">
+                        <thead>
+                            <tr>
+                                <th>ID Préstamo</th>
+                                <th>Nombre Cliente</th>
+                                <th>Monto Préstamo</th>
+                                <th>Cuota Vencida #</th>
+                                <th>Fecha Vencimiento</th>
+                                <th>Días de Atraso</th>
+                                <th>Monto Cuota</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <!-- Los datos del reporte se cargarán dinámicamente -->
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
         </main>
     </div>
 

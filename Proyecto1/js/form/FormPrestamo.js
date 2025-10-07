@@ -56,7 +56,7 @@ class FormPrestamo {
 
             } catch (error) {
                 this.showLoading(false); // Ocultar loading
-                this.toast.error('Error al crear el préstamo\n' + error.message);
+                this.toast.error(error.message);
             }
         });
     }

@@ -14,6 +14,13 @@ class PrestamoService {
                 throw new Error('Por favor, complete todos los campos correctamente.');
             }
 
+            // RF18: Verificar si el cliente tiene préstamos vencidos
+            const prestamosDelCliente = await this.getAllPrestamos({ clienteId: idCliente });
+            const tieneVencidos = prestamosDelCliente.some(p => p.estado === 'Vencido');
+            if (tieneVencidos) {
+                throw new Error('Este cliente tiene préstamos vencidos. No se puede registrar uno nuevo.');
+            }
+
             const clienteDoc = await this.clienteRepository.getById(idCliente);
             if (!clienteDoc) {
                 throw new Error('El cliente seleccionado no existe.');
@@ -122,23 +129,25 @@ class PrestamoService {
             const fechaActual = new Date();
             fechaActual.setHours(0, 0, 0, 0); // Normalizar a medianoche para comparación de fechas
 
-            // Obtener la última fecha programada del préstamo
-            const ultimaFechaProgramada = new Date(Math.max(...tabla.map(pago => pago.fechaProgramada.getTime())));
-            ultimaFechaProgramada.setHours(0, 0, 0, 0);
-
-            // Calcular el día siguiente a la última fecha programada
-            const diaSiguienteUltimaFecha = new Date(ultimaFechaProgramada);
-            diaSiguienteUltimaFecha.setDate(diaSiguienteUltimaFecha.getDate() + 1);
+            // Determinar si hay algún pago vencido
+            const hayPagosVencidos = tabla.some(pago => {
+                const fechaProgramada = new Date(pago.fechaProgramada);
+                fechaProgramada.setHours(0, 0, 0, 0);
+                const estaPagado = prestamo.pagos && prestamo.pagos[pago.periodo];
+                return fechaActual > fechaProgramada && !estaPagado;
+            });
 
             // Determinar el nuevo estado
             let nuevoEstado = 'Activo';
-            
-            if (fechaActual >= diaSiguienteUltimaFecha) {
+            if (hayPagosVencidos) {
                 nuevoEstado = 'Vencido';
             }
 
+            console.log(`[Debug] Préstamo ID: ${prestamoId} | Pagos Vencidos: ${hayPagosVencidos} | Estado Actual: '${prestamo.estado}' | Nuevo Estado: '${nuevoEstado}'`);
+
             // Actualizar el estado si ha cambiado
             if (prestamo.estado !== nuevoEstado) {
+                console.log(`[Debug] Actualizando estado de ${prestamoId} a '${nuevoEstado}'`);
                 await this.prestamoRepository.update(prestamoId, {estado: nuevoEstado});
             }
 
