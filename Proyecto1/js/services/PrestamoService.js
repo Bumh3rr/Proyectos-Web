@@ -47,7 +47,16 @@ class PrestamoService {
     async getAllPrestamos(filtros = {}) {
         try {
             const prestamos = await this.prestamoRepository.getAll(filtros);
-            return prestamos;
+            // Convertir Timestamps de Firestore a objetos Date de JavaScript
+            return prestamos.map(prestamo => {
+                if (prestamo.fechaDesembolso) {
+                    prestamo.fechaDesembolso = prestamo.fechaDesembolso.toDate();
+                }
+                if (prestamo.fechaCreacion) {
+                    prestamo.fechaCreacion = prestamo.fechaCreacion.toDate();
+                }
+                return prestamo;
+            });
         } catch (error) {
             throw error;
         }
@@ -173,6 +182,41 @@ class PrestamoService {
 
         } catch (error) {
             console.error('Error al actualizar todos los estados:', error);
+            throw error;
+        }
+    }
+
+    // RF19: Obtener resumen financiero
+    async getResumenFinanciero() {
+        try {
+            const todosLosPrestamos = await this.getAllPrestamos();
+            let montoTotalPrestado = 0;
+            let interesesTotalesARecibir = 0;
+
+            for (const prestamo of todosLosPrestamos) {
+                // --- VALIDACIÓN DE ROBUSTEZ ---
+                // Si un préstamo tiene datos inválidos, lo omitimos para no romper todo el cálculo.
+                if (typeof prestamo.monto !== 'number' || typeof prestamo.tasaInteres !== 'number' || typeof prestamo.plazo !== 'number' || !prestamo.fechaDesembolso) {
+                    console.warn(`El préstamo con ID ${prestamo.id} se ha omitido del resumen financiero por tener datos inválidos o incompletos.`);
+                    continue; // Saltar al siguiente préstamo
+                }
+
+                // Sumar al monto total prestado
+                montoTotalPrestado += prestamo.monto;
+
+                // Calcular intereses para este préstamo
+                const tablaAmortizacion = this.generarTablaAmortizacion(prestamo);
+                const interesDelPrestamo = tablaAmortizacion.reduce((total, cuota) => total + cuota.interes, 0);
+                interesesTotalesARecibir += interesDelPrestamo;
+            }
+
+            return {
+                montoTotalPrestado,
+                interesesTotalesARecibir
+            };
+
+        } catch (error) {
+            console.error('Error al generar el resumen financiero:', error);
             throw error;
         }
     }

@@ -3,18 +3,37 @@ class FormReportes {
         this.prestamoService = prestamoService;
         this.showLoading = showLoading;
         this.tablaReportesVencidos = document.getElementById('tabla-reportes-vencidos').getElementsByTagName('tbody')[0];
+        this.totalPrestadoEl = document.getElementById('total-prestado');
+        this.totalInteresesEl = document.getElementById('total-intereses');
+    }
+
+    async cargarResumenFinanciero() {
+        this.showLoading(true);
+        try {
+            const resumen = await this.prestamoService.getResumenFinanciero();
+            this.totalPrestadoEl.textContent = this.formatoMoneda(resumen.montoTotalPrestado);
+            this.totalInteresesEl.textContent = this.formatoMoneda(resumen.interesesTotalesARecibir);
+        } catch (error) {
+            console.error('Error al cargar el resumen financiero:', error);
+            this.totalPrestadoEl.textContent = "Error";
+            this.totalInteresesEl.textContent = "Error";
+        } finally {
+            this.showLoading(false);
+        }
     }
 
     async cargarReporteVencidos() {
         this.showLoading(true);
         try {
-            // 1. Obtener todos los préstamos con estado 'Vencido'
+            // 1. Obtener todos los préstamos activos y vencidos para una revisión completa
+            const prestamosActivos = await this.prestamoService.getAllPrestamos({ estado: 'activo' });
             const prestamosVencidos = await this.prestamoService.getAllPrestamos({ estado: 'vencido' });
+            const prestamosParaRevisar = [...prestamosActivos, ...prestamosVencidos];
 
             this.tablaReportesVencidos.innerHTML = ''; // Limpiar tabla
 
-            if (prestamosVencidos.length === 0) {
-                this.tablaReportesVencidos.innerHTML = '<tr><td colspan="7" style="text-align: center;">No hay préstamos vencidos.</td></tr>';
+            if (prestamosParaRevisar.length === 0) {
+                this.tablaReportesVencidos.innerHTML = '<tr><td colspan="7" style="text-align: center;">No hay préstamos activos o vencidos.</td></tr>';
                 return;
             }
 
@@ -23,8 +42,8 @@ class FormReportes {
 
             let hayCuotasVencidas = false;
 
-            // 2. Iterar sobre cada préstamo vencido para encontrar la(s) cuota(s) vencida(s)
-            for (const prestamo of prestamosVencidos) {
+            // 2. Iterar sobre cada préstamo para encontrar la(s) cuota(s) vencida(s)
+            for (const prestamo of prestamosParaRevisar) {
                 const tablaAmortizacion = this.prestamoService.generarTablaAmortizacion(prestamo);
 
                 for (const cuota of tablaAmortizacion) {
