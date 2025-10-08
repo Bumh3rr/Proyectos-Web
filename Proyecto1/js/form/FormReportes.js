@@ -3,6 +3,23 @@ class FormReportes {
         this.prestamoService = prestamoService;
         this.showLoading = showLoading;
         this.tablaReportesVencidos = document.getElementById('tabla-reportes-vencidos').getElementsByTagName('tbody')[0];
+        this.totalPrestadoEl = document.getElementById('total-prestado');
+        this.totalInteresesEl = document.getElementById('total-intereses');
+    }
+
+    async cargarResumenFinanciero() {
+        this.showLoading(true);
+        try {
+            const resumen = await this.prestamoService.getResumenFinanciero();
+            this.totalPrestadoEl.textContent = this.formatoMoneda(resumen.montoTotalPrestado);
+            this.totalInteresesEl.textContent = this.formatoMoneda(resumen.interesesTotalesARecibir);
+        } catch (error) {
+            console.error('Error al cargar el resumen financiero:', error);
+            this.totalPrestadoEl.textContent = "Error";
+            this.totalInteresesEl.textContent = "Error";
+        } finally {
+            this.showLoading(false);
+        }
     }
 
     async cargarReporteVencidos() {

@@ -177,6 +177,34 @@ class PrestamoService {
             throw error;
         }
     }
+
+    // RF19: Obtener resumen financiero
+    async getResumenFinanciero() {
+        try {
+            const todosLosPrestamos = await this.getAllPrestamos();
+            let montoTotalPrestado = 0;
+            let interesesTotalesARecibir = 0;
+
+            for (const prestamo of todosLosPrestamos) {
+                // Sumar al monto total prestado
+                montoTotalPrestado += prestamo.monto;
+
+                // Calcular intereses para este préstamo
+                const tablaAmortizacion = this.generarTablaAmortizacion(prestamo);
+                const interesDelPrestamo = tablaAmortizacion.reduce((total, cuota) => total + cuota.interes, 0);
+                interesesTotalesARecibir += interesDelPrestamo;
+            }
+
+            return {
+                montoTotalPrestado,
+                interesesTotalesARecibir
+            };
+
+        } catch (error) {
+            console.error('Error al generar el resumen financiero:', error);
+            throw error;
+        }
+    }
 }
 
 export default PrestamoService;

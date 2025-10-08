@@ -325,6 +325,7 @@ class App {
             });
           } else if (tab.dataset.tab === "reportes") {
             app.formReportes.cargarReporteVencidos();
+            app.formReportes.cargarResumenFinanciero();
           }
         });
       });
