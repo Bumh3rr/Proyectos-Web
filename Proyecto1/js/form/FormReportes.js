@@ -25,13 +25,15 @@ class FormReportes {
     async cargarReporteVencidos() {
         this.showLoading(true);
         try {
-            // 1. Obtener todos los préstamos con estado 'Vencido'
+            // 1. Obtener todos los préstamos activos y vencidos para una revisión completa
+            const prestamosActivos = await this.prestamoService.getAllPrestamos({ estado: 'activo' });
             const prestamosVencidos = await this.prestamoService.getAllPrestamos({ estado: 'vencido' });
+            const prestamosParaRevisar = [...prestamosActivos, ...prestamosVencidos];
 
             this.tablaReportesVencidos.innerHTML = ''; // Limpiar tabla
 
-            if (prestamosVencidos.length === 0) {
-                this.tablaReportesVencidos.innerHTML = '<tr><td colspan="7" style="text-align: center;">No hay préstamos vencidos.</td></tr>';
+            if (prestamosParaRevisar.length === 0) {
+                this.tablaReportesVencidos.innerHTML = '<tr><td colspan="7" style="text-align: center;">No hay préstamos activos o vencidos.</td></tr>';
                 return;
             }
 
@@ -40,8 +42,8 @@ class FormReportes {
 
             let hayCuotasVencidas = false;
 
-            // 2. Iterar sobre cada préstamo vencido para encontrar la(s) cuota(s) vencida(s)
-            for (const prestamo of prestamosVencidos) {
+            // 2. Iterar sobre cada préstamo para encontrar la(s) cuota(s) vencida(s)
+            for (const prestamo of prestamosParaRevisar) {
                 const tablaAmortizacion = this.prestamoService.generarTablaAmortizacion(prestamo);
 
                 for (const cuota of tablaAmortizacion) {
