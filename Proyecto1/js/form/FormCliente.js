@@ -145,7 +145,10 @@ class FormCliente {
         });
 
         this.paginacionContainer.appendChild(prevButton);
+        //Agrear un espacio entre los botones y el texto
+        this.paginacionContainer.appendChild(document.createTextNode(" "));
         this.paginacionContainer.appendChild(pageInfo);
+        this.paginacionContainer.appendChild(document.createTextNode(" "));
         this.paginacionContainer.appendChild(nextButton);
     }
 

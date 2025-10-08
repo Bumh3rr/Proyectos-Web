@@ -1,6 +1,5 @@
 import PrestamoRepository from '../repository/PrestamoRepository.js';
 import ClienteRepository from '../repository/ClienteRepository.js';
-import {Timestamp} from "https://www.gstatic.com/firebasejs/10.10.0/firebase-firestore.js";
 
 class PrestamoService {
     constructor() {
