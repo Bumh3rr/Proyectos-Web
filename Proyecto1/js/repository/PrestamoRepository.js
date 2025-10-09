@@ -1,5 +1,16 @@
-import { db } from '../config/firebase-config.js';
-import { collection, addDoc, getDocs, query, orderBy, doc, getDoc, updateDoc, deleteDoc, where, Timestamp } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-firestore.js";
+import {db} from '../config/firebase-config.js';
+import {
+    addDoc,
+    collection,
+    deleteDoc,
+    doc,
+    getDoc,
+    getDocs,
+    orderBy,
+    query,
+    updateDoc,
+    where
+} from "https://www.gstatic.com/firebasejs/10.10.0/firebase-firestore.js";
 
 class PrestamoRepository {
     constructor() {
@@ -9,8 +20,7 @@ class PrestamoRepository {
 
     async add(prestamoData) {
         try {
-            const docRef = await addDoc(this.collection, { ...prestamoData });
-            return docRef.id;
+            return await addDoc(this.collection, {...prestamoData});
         } catch (error) {
             throw error;
         }

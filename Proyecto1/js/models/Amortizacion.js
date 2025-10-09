@@ -9,22 +9,6 @@ class Amortizacion {
         this.saldoFinal = saldoFinal;
         this.fechaPagoReal = fechaPagoReal;
     }
-
-    // Método para convertir a objeto plano
-    toObject() {
-        return {
-            periodo: this.periodo,
-            fechaProgramada: this.fechaProgramada,
-            saldoInicial: this.saldoInicial,
-            interes: this.interes,
-            amortizacionCapital: this.amortizacionCapital,
-            cuotaTotal: this.cuotaTotal,
-            saldoFinal: this.saldoFinal,
-            fechaPagoReal: this.fechaPagoReal
-        };
-    }
-
-    // Método estático para crear desde Firestore
     static fromFirestore(doc) {
         const data = doc.data();
         return new Amortizacion(

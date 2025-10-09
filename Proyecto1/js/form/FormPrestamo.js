@@ -45,7 +45,6 @@ class FormPrestamo {
                 if (confirmacion) {
                     this.showLoading(true); // Mostrar loading
                     const prestamoId = await this.prestamoService.createPrestamo(idCliente, cuotaMensual, monto, tasaAnual, plazo, fechaDesembolso);
-                    this.showLoading(false); // Ocultar loading
                     this.toast.success('Préstamo creado exitosamente, ID: ' + prestamoId);
                     this.formPrestamo.reset();
                     this.resultadoCalculo.innerHTML = '';
@@ -55,8 +54,9 @@ class FormPrestamo {
                 }
 
             } catch (error) {
-                this.showLoading(false); // Ocultar loading
                 this.toast.error(error.message);
+            }finally {
+                this.showLoading(false); // Ocultar loading
             }
         });
     }

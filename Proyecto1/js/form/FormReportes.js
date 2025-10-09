@@ -1,4 +1,5 @@
 class FormReportes {
+
     constructor(prestamoService, showLoading) {
         this.prestamoService = prestamoService;
         this.showLoading = showLoading;

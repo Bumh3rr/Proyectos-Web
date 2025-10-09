@@ -1,10 +1,12 @@
 import PrestamoRepository from '../repository/PrestamoRepository.js';
 import ClienteRepository from '../repository/ClienteRepository.js';
+import AmortizacionService from "../services/AmortizacionService.js";
 
 class PrestamoService {
     constructor() {
         this.prestamoRepository = new PrestamoRepository();
         this.clienteRepository = new ClienteRepository();
+        this.amortizacionService = new AmortizacionService();
     }
 
     async createPrestamo(idCliente, cuotaMensual, monto, tasaAnual, plazo, fechaDesembolso) {
@@ -14,7 +16,8 @@ class PrestamoService {
             }
 
             // RF18: Verificar si el cliente tiene préstamos vencidos
-            const prestamosDelCliente = await this.getAllPrestamos({ clienteId: idCliente });
+            const prestamosDelCliente = await this.getAllPrestamos({clienteId: idCliente});
+
             const tieneVencidos = prestamosDelCliente.some(p => p.estado === 'Vencido');
             if (tieneVencidos) {
                 throw new Error('Este cliente tiene préstamos vencidos. No se puede registrar uno nuevo.');
@@ -24,11 +27,10 @@ class PrestamoService {
             if (!clienteDoc) {
                 throw new Error('El cliente seleccionado no existe.');
             }
-            const nombreCliente = clienteDoc.nombre;
 
             const prestamoData = {
                 idCliente: idCliente,
-                nombreCliente: nombreCliente,
+                nombreCliente: clienteDoc.nombre,
                 monto: monto,
                 tasaInteres: tasaAnual,
                 plazo: plazo,
@@ -38,7 +40,24 @@ class PrestamoService {
                 fechaCreacion: new Date(),
             };
 
-            return await this.prestamoRepository.add(prestamoData);
+            const value = await this.prestamoRepository.add(prestamoData);
+            return value.id;
+/*
+            const amortizacionData = {
+                idPrestamo: value,
+                periodo: prestamoData.plazo,
+                fecha_programada: prestamoData.fechaDesembolso,
+                saldo_inicial: prestamoData.monto,
+                interes: prestamoData.tasaInteres,
+                amortizacion_capital: prestamoData.cuotaMensual,
+                cuota_total: prestamoData.cuotaMensual,
+                saldo_final: 0,
+                fecha_pago_real: null
+            }
+
+
+            await this.amortizacionService.addAmortizacion(prestamoData.idCliente, value);
+*/
         } catch (error) {
             throw error;
         }
@@ -125,7 +144,7 @@ class PrestamoService {
         try {
             const prestamo = await this.getPrestamoById(prestamoId);
             const tabla = this.generarTablaAmortizacion(prestamo);
-            
+
             // Verificar si todos los pagos están hechos
             const todosPagados = tabla.every(p => prestamo.pagos && prestamo.pagos[p.periodo]);
             if (todosPagados) {
@@ -168,7 +187,7 @@ class PrestamoService {
             // Obtener todos los préstamos que no están pagados
             const prestamosActivos = await this.getAllPrestamos({estado: 'activo'});
             const prestamosVencidos = await this.getAllPrestamos({estado: 'vencido'});
-            
+
             const todosLosPrestamos = [...prestamosActivos, ...prestamosVencidos];
 
             for (const prestamo of todosLosPrestamos) {
