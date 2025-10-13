@@ -104,6 +104,10 @@ class App {
           }
         });
       });
+
+      document.getElementById('btnImprimirClientes').addEventListener('click', () => {
+        app.formCliente.imprimirClientesPDF();
+      });
     });
   }
 

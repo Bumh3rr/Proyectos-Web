@@ -283,6 +283,50 @@ class FormCliente {
             this.render();
         });
     }
+
+    imprimirClientesPDF() {
+        const {jsPDF} = window.jspdf;
+        const doc = new jsPDF();
+
+        doc.text("Lista de Clientes", 20, 10);
+
+        const tableColumn = ["Nombre", "RFC", "Teléfono", "Dirección", "Fecha Registro"];
+        const tableRows = [];
+
+        const clientesOrdenados = [...this.listaClientesFiltrada].sort((a, b) => a.nombre.localeCompare(b.nombre));
+
+        clientesOrdenados.forEach(cliente => {
+            const clienteData = [
+                cliente.nombre,
+                cliente.rfc,
+                cliente.telefono,
+                cliente.direccion,
+                cliente.fechaRegistro.toLocaleDateString("es-MX")
+            ];
+            tableRows.push(clienteData);
+        });
+
+        doc.autoTable(tableColumn, tableRows, {startY: 20});
+        const pdfOutput = doc.output('blob');
+        const pdfUrl = URL.createObjectURL(pdfOutput);
+
+        const modalPdf = document.getElementById('modalPdf');
+        const pdfViewer = document.getElementById('pdfViewer');
+
+        pdfViewer.src = pdfUrl;
+        modalPdf.style.display = 'block';
+
+        const closeButton = modalPdf.querySelector(".close-button");
+        closeButton.addEventListener("click", () => {
+            modalPdf.style.display = "none";
+        });
+
+        window.addEventListener("click", (event) => {
+            if (event.target === modalPdf) {
+                modalPdf.style.display = "none";
+            }
+        });
+    }
 }
 
 export default FormCliente;
