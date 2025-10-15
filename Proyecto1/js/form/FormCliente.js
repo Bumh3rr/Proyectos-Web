@@ -11,7 +11,7 @@ class FormCliente {
         this.listaClientesCompleta = [];
         this.listaClientesFiltrada = [];
         this.currentPage = 1;
-        this.rowsPerPage = 5; // Puedes ajustar este valor
+        this.rowsPerPage = 10; // Puedes ajustar este valor
 
         this.initEventListeners();
     }
@@ -22,6 +22,36 @@ class FormCliente {
         this.installEventEliminarCliente();
         this.installEventBuscarCliente();
         this.installEventShowModalShowCredencialCliente();
+        this.installEventGraficaGenero();
+        this.inicializarCamaraCliente();
+        this.inicializarFirmaCliente();
+
+    }
+
+    inicializarCamaraCliente() {
+        const video = document.getElementById("videoCliente");
+        const canvas = document.getElementById("canvasFotoCliente");
+        const btnTomarFoto = document.getElementById("btnTomarFoto");
+        const preview = document.getElementById("previewFotoCliente");
+        let stream = null;
+        let fotoBase64 = "";
+
+        // Iniciar cámara
+        navigator.mediaDevices.getUserMedia({ video: true })
+            .then(s => {
+                stream = s;
+                video.srcObject = stream;
+            });
+
+        btnTomarFoto.addEventListener("click", () => {
+            canvas.getContext("2d").drawImage(video, 0, 0, canvas.width, canvas.height);
+            fotoBase64 = canvas.toDataURL("image/png");
+            preview.src = fotoBase64;
+            preview.style.display = "block";
+        });
+
+        // Guardar la foto en la instancia para usarla al registrar
+        this.obtenerFotoCliente = () => fotoBase64;
     }
 
     // RF01: Registrar nuevo cliente
@@ -34,6 +64,9 @@ class FormCliente {
             const telefono = document.getElementById("telefono").value;
             const direccion = document.getElementById("direccion").value;
             const genero = document.getElementById("genero").value;
+            const foto = this.obtenerFotoCliente ? this.obtenerFotoCliente() : "";
+            // firma
+            const firma = this.obtenerFirmaCliente ? this.obtenerFirmaCliente() : "";
 
             try {
                 this.showLoading(true);
@@ -42,7 +75,10 @@ class FormCliente {
                     rfc,
                     telefono,
                     direccion,
-                    genero
+                    genero,
+                    foto,
+                    firma
+
                 );
                 this.showLoading(false);
 
@@ -211,7 +247,7 @@ class FormCliente {
                 await this.cargarClientes();
             } catch (error) {
                 this.toast.error("Error al actualizar el cliente\n" + error.message);
-            }finally {
+            } finally {
                 this.showLoading(false);
             }
         });
@@ -233,7 +269,7 @@ class FormCliente {
                 this.showLoading(true);
                 const onDelete = await this.clienteService.validarEliminarCliente(id);
 
-                if (!onDelete.canDelete){
+                if (!onDelete.canDelete) {
                     this.toast.error(onDelete.message);
                     return;
                 }
@@ -242,7 +278,7 @@ class FormCliente {
                 modalConfirmarEliminar.style.display = "block";
             } catch (error) {
                 this.toast.error("Error al intentar eliminar el cliente\n" + error.message);
-            }finally {
+            } finally {
                 this.showLoading(false);
             }
         };
@@ -342,19 +378,138 @@ class FormCliente {
                 this.showLoading(true);
                 const cliente = await this.clienteService.getClienteById(id);
 
-                document.getElementById("editarClienteId").value = id;
-                document.getElementById("editarNombre").value = cliente.nombre;
-                document.getElementById("editarRfc").value = cliente.rfc;
-                document.getElementById("editarTelefono").value = cliente.telefono;
-                document.getElementById("editarDireccion").value = cliente.direccion;
+                // Generar PDF con jsPDF
+                const { jsPDF } = window.jspdf;
+                const doc = new jsPDF();
 
-                this.modalEditCliente.style.display = "block";
+                doc.setFontSize(18);
+                doc.text("Credencial de Cliente", 20, 20);
+
+                doc.setFontSize(12);
+                doc.text(`Nombre: ${cliente.nombre}`, 20, 40);
+                doc.text(`RFC: ${cliente.rfc}`, 20, 50);
+                doc.text(`Teléfono: ${cliente.telefono}`, 20, 60);
+                doc.text(`Dirección: ${cliente.direccion}`, 20, 70);
+                doc.text(`Género: ${cliente.genero}`, 20, 80);
+
+                // Agregar la foto si existe
+                console.log(cliente.foto)
+                if (cliente.foto && cliente.foto.startsWith("data:image")) {
+                    doc.addImage(cliente.foto, "PNG", 140, 30, 50, 60);
+                } else {
+                    console.warn("No se encontró una foto válida para el cliente.");
+                }
+
+                if (cliente.firma && cliente.firma.startsWith("data:image")) {
+                    doc.addImage(cliente.firma, "PNG", 20, 100, 60, 24); // Ajusta posición/tamaño
+                }
+
+                // Convertir PDF a blob y mostrar en el iframe
+                const pdfBlob = doc.output("blob");
+                const pdfUrl = URL.createObjectURL(pdfBlob);
+
+                document.getElementById("iframe-credencial-pdf").src = pdfUrl;
+                document.getElementById("modalCredencial").style.display = "block";
             } catch (error) {
-                this.toast.error("Error al obtener cliente para editar\n" + error.message);
-            }finally {
+                this.toast.error("Error al mostrar la credencial\n" + error.message);
+            } finally {
                 this.showLoading(false);
             }
         };
+
+        // Cerrar modal
+        const modal = document.getElementById("modalCredencial");
+        const closeBtn = modal.querySelector(".close-button");
+        closeBtn.addEventListener("click", () => {
+            modal.style.display = "none";
+        });
+        window.addEventListener("click", (event) => {
+            if (event.target === modal) {
+                modal.style.display = "none";
+            }
+        });
+    }
+
+    inicializarFirmaCliente() {
+        const canvas = document.getElementById("canvasFirmaCliente");
+        const btnLimpiar = document.getElementById("btnLimpiarFirma");
+        const preview = document.getElementById("previewFirmaCliente");
+        let dibujando = false;
+        let ctx = canvas.getContext("2d");
+
+        canvas.addEventListener("mousedown", () => dibujando = true);
+        canvas.addEventListener("mouseup", () => dibujando = false);
+        canvas.addEventListener("mouseout", () => dibujando = false);
+        canvas.addEventListener("mousemove", (e) => {
+            if (!dibujando) return;
+            const rect = canvas.getBoundingClientRect();
+            ctx.lineWidth = 2;
+            ctx.lineCap = "round";
+            ctx.strokeStyle = "#222";
+            ctx.lineTo(e.clientX - rect.left, e.clientY - rect.top);
+            ctx.stroke();
+            ctx.beginPath();
+            ctx.moveTo(e.clientX - rect.left, e.clientY - rect.top);
+        });
+
+        btnLimpiar.addEventListener("click", () => {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            preview.style.display = "none";
+        });
+
+        // Guardar la firma en la instancia para usarla al registrar
+        this.obtenerFirmaCliente = () => canvas.toDataURL("image/png");
+    }
+
+
+    installEventGraficaGenero() {
+        const btnGrafica = document.getElementById("btmGetGrafica");
+        const modal = document.getElementById("modalGraficaGenero");
+        const closeBtn = modal.querySelector(".close-button");
+        let chartInstance = null;
+
+        btnGrafica.addEventListener("click", () => {
+            // Contar clientes por género
+            const conteo = {Masculino: 0, Femenino: 0, Otro: 0};
+            this.listaClientesCompleta.forEach(c => {
+                if (conteo[c.genero] !== undefined) conteo[c.genero]++;
+            });
+
+            // Mostrar modal
+            modal.style.display = "block";
+
+            // Destruir gráfico anterior si existe
+            if (chartInstance) chartInstance.destroy();
+
+            // Crear gráfico
+            const ctx = document.getElementById("graficaGenero").getContext("2d");
+            chartInstance = new Chart(ctx, {
+                type: "bar",
+                data: {
+                    labels: ["Masculino", "Femenino", "Otro"],
+                    datasets: [{
+                        label: "Cantidad de clientes",
+                        data: [conteo.Masculino, conteo.Femenino, conteo.Otro],
+                        backgroundColor: ["#36A2EB", "#FF6384", "#FFCE56"]
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: {display: false}
+                    }
+                }
+            });
+        });
+
+        closeBtn.addEventListener("click", () => {
+            modal.style.display = "none";
+        });
+        window.addEventListener("click", (event) => {
+            if (event.target === modal) {
+                modal.style.display = "none";
+            }
+        });
     }
 }
 

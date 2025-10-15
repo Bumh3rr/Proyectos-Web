@@ -143,6 +143,22 @@
                                 <input type="text" id="direccion" required/>
                             </div>
 
+                            <div class="form-group">
+                                <label>Foto del Cliente:</label>
+                                <video id="videoCliente" width="200" height="150" autoplay style="border:1px solid #ccc;"></video>
+                                <canvas id="canvasFotoCliente" width="200" height="150" style="display:none;"></canvas>
+                                <button type="button" id="btnTomarFoto" class="btn btn-secondary">Tomar Foto</button>
+                                <img id="previewFotoCliente" src="" alt="Foto tomada" style="display:none; width:200px; height:150px; margin-top:10px; border:1px solid #ccc;"/>
+                            </div>
+
+                            <div class="form-group">
+                                <label>Firma del Cliente:</label>
+                                <canvas id="canvasFirmaCliente" width="200" height="80" style="border:1px solid #ccc; background:#fff; cursor:crosshair;"></canvas>
+                                <button type="button" id="btnLimpiarFirma" class="btn btn-secondary" style="margin-top:5px;">Limpiar Firma</button>
+                                <img id="previewFirmaCliente" src="" alt="Firma tomada" style="display:none; width:200px; height:80px; margin-top:10px; border:1px solid #ccc;"/>
+                            </div>
+
+
                             <button type="submit" class="btn-register-customer">
                                 Registrar Cliente
                             </button>
@@ -158,6 +174,7 @@
                                     placeholder="Buscar por nombre o RFC"
                             />
                              <button id="btnImprimirClientes" class="btn btn-primary">Imprimir Clientes</button>
+                             <button id="btmGetGrafica" class="btn btn-info">Generar Grafica</button>
                         </div>
                         <table id="tablaClientes" class="tabla-card">
                             <thead>
@@ -469,7 +486,26 @@
             </div>
         </div>
 
-        <iframe id="iframePdf" style="display: none"></iframe>
+        <div id="modalGraficaGenero" class="modal">
+            <div class="modal-content">
+                <span class="close-button"></span>
+                <h2>Clientes por Género</h2>
+                <canvas id="graficaGenero" width="400" height="300"></canvas>
+            </div>
+        </div>
+
+        <div id="modalCredencial" class="modal">
+            <div class="modal-content">
+                <span class="close-button"></span>
+                <h2>Credencial</h2>
+                <iframe id="iframe-credencial-pdf"  width="100%" height="500px"></iframe>
+            </div>
+        </div>
+
+        <iframe id="iframePdf" width="100%" height="500px"></iframe>
+
+        <!-- Chart.js -->
+        <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
         <!-- Toast Notifications -->
         <script src="https://cdn.jsdelivr.net/npm/notyf@3/notyf.min.js"></script>

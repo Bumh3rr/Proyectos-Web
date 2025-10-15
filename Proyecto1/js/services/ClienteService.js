@@ -71,7 +71,7 @@ class ClienteService {
     }
 
     // Crear nuevo Cliente
-    async createCliente(nombre, rfc, telefono, direccion, genero) {
+    async createCliente(nombre, rfc, telefono, direccion, genero, foto,firma) {
         try {
             const clienteData = {
                 nombre: this.validateNombre(nombre),
@@ -79,7 +79,9 @@ class ClienteService {
                 telefono: this.validateTelefono(telefono),
                 direccion: this.capitalizeString(direccion),
                 fechaRegistro: new Date(),
-                genero: genero
+                genero: genero,
+                foto: foto,
+                firma: firma
             };
 
             const clienteId = await this.repository.add(clienteData);

@@ -1,5 +1,5 @@
 class Cliente {
-    constructor(id, nombre, telefono, rfc, direccion, fechaRegistro = new Date(), genero) {
+    constructor(id, nombre, telefono, rfc, direccion, fechaRegistro = new Date(), genero, foto, firma) {
         this.id = id;
         this.nombre = nombre;
         this.telefono = telefono;
@@ -7,6 +7,8 @@ class Cliente {
         this.direccion = direccion;
         this.fechaRegistro = fechaRegistro;
         this.genero = genero;
+        this.foto = foto;
+        this.firma = firma
     }
 
     static fromFirestore(doc) {
@@ -18,7 +20,9 @@ class Cliente {
             data.rfc,
             data.direccion,
             data.fechaRegistro?.toDate(),
-            data.genero
+            data.genero,
+            data.foto,
+            data.firma
         );
     }
 }

@@ -63,7 +63,6 @@ class ClienteRepository {
         throw new Error("Cliente no encontrado");
       }
     } catch (error) {
-      console.error("Error en getById:", error.message);
       throw error;
     }
   }
