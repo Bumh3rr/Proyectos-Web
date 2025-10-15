@@ -66,16 +66,7 @@ class PrestamoService {
     async getAllPrestamos(filtros = {}) {
         try {
             const prestamos = await this.prestamoRepository.getAll(filtros);
-            // Convertir Timestamps de Firestore a objetos Date de JavaScript
-            return prestamos.map(prestamo => {
-                if (prestamo.fechaDesembolso) {
-                    prestamo.fechaDesembolso = prestamo.fechaDesembolso.toDate();
-                }
-                if (prestamo.fechaCreacion) {
-                    prestamo.fechaCreacion = prestamo.fechaCreacion.toDate();
-                }
-                return prestamo;
-            });
+            return prestamos;
         } catch (error) {
             throw error;
         }

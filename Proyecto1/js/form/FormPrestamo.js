@@ -1,6 +1,5 @@
 class FormPrestamo {
 
-
     constructor(toast, showLoading, prestamoService, clienteService, lambdaVerPagos) {
         this.prestamoService = prestamoService;
         this.clienteService = clienteService;
@@ -10,7 +9,6 @@ class FormPrestamo {
         this.formPrestamo = document.getElementById('formPrestamo');
         this.tablaPrestamosBody = document.querySelector('#tablaPrestamos tbody');
         this.resultadoCalculo = document.getElementById('resultadoCalculo');
-        this.loading = document.getElementById('loading');
         this.initEventListeners();
     }
 
@@ -129,6 +127,7 @@ class FormPrestamo {
             this.showLoading(false); // Ocultar loading
         } catch (error) {
             this.showLoading(false); // Ocultar loading
+            console.log("Error al cargar préstamos:", error);
             this.toast.error('Error al cargar los préstamos\n' + error.message);
         }
     }
