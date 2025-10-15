@@ -21,6 +21,7 @@ class FormCliente {
         this.installEventShowModalEditarCliente();
         this.installEventEliminarCliente();
         this.installEventBuscarCliente();
+        this.installEventShowModalShowCredencialCliente();
     }
 
     // RF01: Registrar nuevo cliente
@@ -32,6 +33,7 @@ class FormCliente {
             const rfc = document.getElementById("rfc").value;
             const telefono = document.getElementById("telefono").value;
             const direccion = document.getElementById("direccion").value;
+            const genero = document.getElementById("genero").value;
 
             try {
                 this.showLoading(true);
@@ -39,7 +41,8 @@ class FormCliente {
                     nombre,
                     rfc,
                     telefono,
-                    direccion
+                    direccion,
+                    genero
                 );
                 this.showLoading(false);
 
@@ -97,11 +100,13 @@ class FormCliente {
             const row = document.createElement("tr");
             row.innerHTML = `
                 <td>${cliente.nombre}</td>
+                <td>${cliente.genero}</td>
                 <td>${cliente.rfc}</td>
                 <td>${cliente.telefono}</td>
                 <td>${cliente.direccion}</td>
                 <td>${fecha}</td>
                 <td class="acciones_customer">
+                    <button type="button" class="btn btn-outline-info" onclick="verCredencial('${cliente.id}')">Ver Credencial</button>
                     <button type="button" class="btn btn-outline-success" onclick="editarCliente('${cliente.id}')">Editar</button>
                     <button type="button" class="btn btn-outline-danger" onclick="eliminarCliente('${cliente.id}')">Eliminar</button>
                 </td>
@@ -110,6 +115,7 @@ class FormCliente {
         });
     }
 
+    // Renderiza los controles de paginación
     renderPaginationControls() {
         this.paginacionContainer.innerHTML = "";
         const totalPages = Math.ceil(
@@ -284,6 +290,7 @@ class FormCliente {
         });
     }
 
+    // Imprimir lista de clientes en PDF
     imprimirClientesPDF() {
         const {jsPDF} = window.jspdf;
         const doc = new jsPDF();
@@ -326,6 +333,28 @@ class FormCliente {
                 modalPdf.style.display = "none";
             }
         });
+    }
+
+    // Ver Credencial del cliente
+    installEventShowModalShowCredencialCliente() {
+        window.verCredencial = async (id) => {
+            try {
+                this.showLoading(true);
+                const cliente = await this.clienteService.getClienteById(id);
+
+                document.getElementById("editarClienteId").value = id;
+                document.getElementById("editarNombre").value = cliente.nombre;
+                document.getElementById("editarRfc").value = cliente.rfc;
+                document.getElementById("editarTelefono").value = cliente.telefono;
+                document.getElementById("editarDireccion").value = cliente.direccion;
+
+                this.modalEditCliente.style.display = "block";
+            } catch (error) {
+                this.toast.error("Error al obtener cliente para editar\n" + error.message);
+            }finally {
+                this.showLoading(false);
+            }
+        };
     }
 }
 

@@ -1,14 +1,14 @@
 class Cliente {
-    constructor(id, nombre, telefono, rfc, direccion, fechaRegistro = new Date()) {
+    constructor(id, nombre, telefono, rfc, direccion, fechaRegistro = new Date(), genero) {
         this.id = id;
         this.nombre = nombre;
         this.telefono = telefono;
         this.rfc = rfc;
         this.direccion = direccion;
         this.fechaRegistro = fechaRegistro;
+        this.genero = genero;
     }
 
-    // Método estático para crear desde Firestore
     static fromFirestore(doc) {
         const data = doc.data();
         return new Cliente(
@@ -18,6 +18,7 @@ class Cliente {
             data.rfc,
             data.direccion,
             data.fechaRegistro?.toDate(),
+            data.genero
         );
     }
 }

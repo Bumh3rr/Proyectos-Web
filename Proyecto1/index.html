@@ -117,6 +117,17 @@
                                 <input type="text" id="nombre" required/>
                             </div>
 
+                            <!-- Genero -->
+                            <div class="form-group">
+                                <label for="genero">Género:</label>
+                                <select id="genero" required>
+                                    <option value="">Seleccione un género...</option>
+                                    <option value="Masculino">Masculino</option>
+                                    <option value="Femenino">Femenino</option>
+                                    <option value="Otro">Otro</option>
+                                </select>
+                            </div>
+
                             <div class="form-group">
                                 <label for="rfc">RFC:</label>
                                 <input type="text" id="rfc" required maxlength="13"/>
@@ -152,6 +163,7 @@
                             <thead>
                             <tr>
                                 <th>Nombre</th>
+                                <th>Genero</th>
                                 <th>RFC</th>
                                 <th>Teléfono</th>
                                 <th>Dirección</th>
@@ -458,8 +470,6 @@
         </div>
 
         <iframe id="iframePdf" style="display: none"></iframe>
-
-
 
         <!-- Toast Notifications -->
         <script src="https://cdn.jsdelivr.net/npm/notyf@3/notyf.min.js"></script>
