@@ -7,27 +7,38 @@ class FormCliente {
         this.tablaClientesBody = document.querySelector("#tablaClientes tbody");
         this.modalEditCliente = document.getElementById("modalEditarCliente");
         this.paginacionContainer = document.getElementById("paginacionClientes");
+        this.modalAddCustomer = document.getElementById("modal-cliente-add");
+
+        this.modalCustom = document.getElementById('modal-custom');
+        this.modalBodyCustom = document.getElementById('body-content-modal');
+        this.modalTitleCustom = document.getElementById('title-content-modal');
 
         this.listaClientesCompleta = [];
         this.listaClientesFiltrada = [];
         this.currentPage = 1;
         this.rowsPerPage = 10; // Puedes ajustar este valor
+        this.urlBaseQR = "https://864ce7f8c737.ngrok-free.app/templates/verCliente.html?id=";
 
         this.initEventListeners();
     }
 
     initEventListeners() {
+        this.installSettingsModal();
+
+        this.installEventShowModalAddCustomer();
         this.installEventRegistrarCliente();
+
+        this.installEventImprimirClientesPDF();
+
         this.installEventShowModalEditarCliente();
         this.installEventEliminarCliente();
         this.installEventBuscarCliente();
         this.installEventShowModalShowCredencialCliente();
         this.installEventGraficaGenero();
-        this.inicializarCamaraCliente();
         this.inicializarFirmaCliente();
-
     }
 
+    // Inicializar cámara para tomar foto del cliente
     inicializarCamaraCliente() {
         const video = document.getElementById("videoCliente");
         const canvas = document.getElementById("canvasFotoCliente");
@@ -37,21 +48,115 @@ class FormCliente {
         let fotoBase64 = "";
 
         // Iniciar cámara
-        navigator.mediaDevices.getUserMedia({ video: true })
+        navigator.mediaDevices.getUserMedia({video: true})
             .then(s => {
                 stream = s;
                 video.srcObject = stream;
             });
 
-        btnTomarFoto.addEventListener("click", () => {
-            canvas.getContext("2d").drawImage(video, 0, 0, canvas.width, canvas.height);
-            fotoBase64 = canvas.toDataURL("image/png");
-            preview.src = fotoBase64;
-            preview.style.display = "block";
+        btnTomarFoto.addEventListener("click", async () => {
+            try {
+                // Si ya hay una foto tomada, permitir volver a tomarla
+                if (fotoBase64) {
+                    // Reiniciar vista para tomar foto nuevamente
+                    fotoBase64 = "";
+                    preview.src = "";
+                    preview.style.display = "none";
+
+                    // Reiniciar cámara
+                    if (stream) {
+                        stream.getTracks().forEach(t => t.stop());
+                        stream = null;
+                    }
+                    try {
+                        stream = await navigator.mediaDevices.getUserMedia({video: true});
+                        video.srcObject = stream;
+                        await video.play();
+                    } catch (err) {
+                        this.toast.error("No se pudo acceder a la cámara: " + (err.message || err));
+                        return;
+                    }
+
+                    video.style.display = "block";
+                    canvas.style.display = "none";
+                    btnTomarFoto.textContent = "Tomar foto";
+                    return;
+                }
+
+                // Si no hay stream activo, iniciar cámara
+                if (!stream) {
+                    try {
+                        stream = await navigator.mediaDevices.getUserMedia({video: true});
+                        video.srcObject = stream;
+                        await video.play();
+                    } catch (err) {
+                        this.toast.error("No se pudo acceder a la cámara: " + (err.message || err));
+                        return;
+                    }
+                }
+
+                // Asegurar tamaño del canvas acorde al video
+                const vw = video.videoWidth || 640;
+                const vh = video.videoHeight || 480;
+                canvas.width = vw;
+                canvas.height = vh;
+
+                // Tomar la foto desde el video
+                const ctx = canvas.getContext("2d");
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+                // Convertir a base64 y mostrar preview
+                fotoBase64 = canvas.toDataURL("image/png");
+                preview.src = fotoBase64;
+                preview.style.display = "block";
+
+                // Detener cámara para ahorrar recursos
+                if (stream) {
+                    stream.getTracks().forEach(track => track.stop());
+                    stream = null;
+                }
+
+                video.style.display = "none";
+                canvas.style.display = "none";
+                btnTomarFoto.textContent = "Volver a tomar foto";
+            } catch (error) {
+                this.toast.error("Error al tomar la foto: " + (error.message || error));
+            }
+            this.obtenerFotoCliente = () => fotoBase64;
+        });
+    }
+
+    stopCameraCliente() {
+        const video = document.getElementById("videoCliente");
+        let stream = video.srcObject;
+        if (stream) {
+            stream.getTracks().forEach(track => track.stop());
+            video.srcObject = null;
+        }
+    }
+
+    // Mostrar modal para agregar nuevo cliente
+    installEventShowModalAddCustomer() {
+        const btnOpenModal = document.getElementById("btnOpenModalAddCustomer");
+        const modal = this.modalAddCustomer;
+        const closeBtn = modal.querySelector(".close-button");
+
+        btnOpenModal.addEventListener("click", () => {
+            this.inicializarCamaraCliente();
+            modal.style.display = "block";
         });
 
-        // Guardar la foto en la instancia para usarla al registrar
-        this.obtenerFotoCliente = () => fotoBase64;
+        closeBtn.addEventListener("click", () => {
+            this.stopCameraCliente();
+            modal.style.display = "none";
+        });
+
+        window.addEventListener("click", (event) => {
+            if (event.target === modal) {
+                modal.style.display = "none";
+            }
+        });
     }
 
     // RF01: Registrar nuevo cliente
@@ -65,7 +170,6 @@ class FormCliente {
             const direccion = document.getElementById("direccion").value;
             const genero = document.getElementById("genero").value;
             const foto = this.obtenerFotoCliente ? this.obtenerFotoCliente() : "";
-            // firma
             const firma = this.obtenerFirmaCliente ? this.obtenerFirmaCliente() : "";
 
             try {
@@ -78,12 +182,26 @@ class FormCliente {
                     genero,
                     foto,
                     firma
-
                 );
                 this.showLoading(false);
 
                 this.toast.success("Cliente registrado exitosamente, ID: " + id);
                 this.formCliente.reset();
+                this.stopCameraCliente();
+
+                if (this.obtenerFotoCliente) {
+                    this.obtenerFotoCliente = () => "";
+                    document.getElementById("previewFotoCliente").style.display = "none";
+                    document.getElementById("videoCliente").style.display = "block";
+                }
+                if (this.obtenerFirmaCliente) {
+                    this.obtenerFirmaCliente = () => "";
+                    const canvas = document.getElementById("canvasFirmaCliente");
+                    const ctx = canvas.getContext("2d");
+                    ctx.clearRect(0, 0, canvas.width, canvas.height);
+                    document.getElementById("previewFirmaCliente").style.display = "none";
+                }
+                this.modalAddCustomer.style.display = "none";
 
                 await this.cargarClientes(); // Recarga toda la lista
             } catch (error) {
@@ -92,6 +210,7 @@ class FormCliente {
             }
         });
     }
+
 
     // Cargar clientes y prepararlos para la paginación
     async cargarClientes() {
@@ -327,48 +446,40 @@ class FormCliente {
     }
 
     // Imprimir lista de clientes en PDF
-    imprimirClientesPDF() {
-        const {jsPDF} = window.jspdf;
-        const doc = new jsPDF();
+    installEventImprimirClientesPDF() {
+        document.getElementById('btnImprimirClientes').addEventListener('click', () => {
+            const {jsPDF} = window.jspdf;
+            const doc = new jsPDF();
 
-        doc.text("Lista de Clientes", 20, 10);
+            doc.text("Lista de Clientes", 20, 10);
 
-        const tableColumn = ["Nombre", "RFC", "Teléfono", "Dirección", "Fecha Registro"];
-        const tableRows = [];
+            const tableColumn = ["Nombre", "RFC", "Teléfono", "Dirección", "Fecha Registro"];
+            const tableRows = [];
 
-        const clientesOrdenados = [...this.listaClientesFiltrada].sort((a, b) => a.nombre.localeCompare(b.nombre));
+            const clientesOrdenados = [...this.listaClientesFiltrada].sort((a, b) => a.nombre.localeCompare(b.nombre));
 
-        clientesOrdenados.forEach(cliente => {
-            const clienteData = [
-                cliente.nombre,
-                cliente.rfc,
-                cliente.telefono,
-                cliente.direccion,
-                cliente.fechaRegistro.toLocaleDateString("es-MX")
-            ];
-            tableRows.push(clienteData);
+            clientesOrdenados.forEach(cliente => {
+                const clienteData = [
+                    cliente.nombre,
+                    cliente.rfc,
+                    cliente.telefono,
+                    cliente.direccion,
+                    cliente.fechaRegistro.toLocaleDateString("es-MX")
+                ];
+                tableRows.push(clienteData);
+            });
+
+            doc.autoTable(tableColumn, tableRows, {startY: 20});
+            const pdfOutput = doc.output('blob');
+            const pdfUrl = URL.createObjectURL(pdfOutput);
+
+            const modal = this.getModalCustom();
+            modal.title.textContent = 'Lista de Clientes';
+            modal.body.innerHTML = `<iframe width="100%" height="500px"></iframe>`;
+            modal.body.querySelector('iframe').src = pdfUrl;
+            modal.show();
         });
 
-        doc.autoTable(tableColumn, tableRows, {startY: 20});
-        const pdfOutput = doc.output('blob');
-        const pdfUrl = URL.createObjectURL(pdfOutput);
-
-        const modalPdf = document.getElementById('modalPdf');
-        const pdfViewer = document.getElementById('pdfViewer');
-
-        pdfViewer.src = pdfUrl;
-        modalPdf.style.display = 'block';
-
-        const closeButton = modalPdf.querySelector(".close-button");
-        closeButton.addEventListener("click", () => {
-            modalPdf.style.display = "none";
-        });
-
-        window.addEventListener("click", (event) => {
-            if (event.target === modalPdf) {
-                modalPdf.style.display = "none";
-            }
-        });
     }
 
     // Ver Credencial del cliente
@@ -379,7 +490,7 @@ class FormCliente {
                 const cliente = await this.clienteService.getClienteById(id);
 
                 // Generar PDF con jsPDF
-                const { jsPDF } = window.jspdf;
+                const {jsPDF} = window.jspdf;
                 const doc = new jsPDF();
 
                 doc.setFontSize(18);
@@ -393,41 +504,42 @@ class FormCliente {
                 doc.text(`Género: ${cliente.genero}`, 20, 80);
 
                 // Agregar la foto si existe
-                console.log(cliente.foto)
                 if (cliente.foto && cliente.foto.startsWith("data:image")) {
                     doc.addImage(cliente.foto, "PNG", 140, 30, 50, 60);
-                } else {
-                    console.warn("No se encontró una foto válida para el cliente.");
                 }
 
+                // Agregar la firma si existe
                 if (cliente.firma && cliente.firma.startsWith("data:image")) {
-                    doc.addImage(cliente.firma, "PNG", 20, 100, 60, 24); // Ajusta posición/tamaño
+                    doc.addImage(cliente.firma, "PNG", 20, 100, 60, 24);
                 }
+
+                const NGROK_BASE = this.urlBaseQR;
+                console.log("Cliente ID:", cliente.id);
+                const qrUrl = `${NGROK_BASE}${encodeURIComponent(cliente.id)}`;
+                console.log("QR URL:", qrUrl);
+                const qr = new QRious({
+                    value: qrUrl,
+                    size: 200
+                });
+                const qrDataUrl = qr.toDataURL("image/png");
+                doc.addImage(qrDataUrl, "PNG", 140, 100, 50, 50);
 
                 // Convertir PDF a blob y mostrar en el iframe
                 const pdfBlob = doc.output("blob");
                 const pdfUrl = URL.createObjectURL(pdfBlob);
 
-                document.getElementById("iframe-credencial-pdf").src = pdfUrl;
-                document.getElementById("modalCredencial").style.display = "block";
+                const modal = this.getModalCustom();
+                modal.title.textContent = 'Credencial de ' + cliente.nombre;
+                modal.body.innerHTML = `<iframe width="100%" height="500px"></iframe>`;
+                modal.body.querySelector('iframe').src = pdfUrl;
+                modal.show();
+
             } catch (error) {
                 this.toast.error("Error al mostrar la credencial\n" + error.message);
             } finally {
                 this.showLoading(false);
             }
         };
-
-        // Cerrar modal
-        const modal = document.getElementById("modalCredencial");
-        const closeBtn = modal.querySelector(".close-button");
-        closeBtn.addEventListener("click", () => {
-            modal.style.display = "none";
-        });
-        window.addEventListener("click", (event) => {
-            if (event.target === modal) {
-                modal.style.display = "none";
-            }
-        });
     }
 
     inicializarFirmaCliente() {
@@ -461,29 +573,25 @@ class FormCliente {
         this.obtenerFirmaCliente = () => canvas.toDataURL("image/png");
     }
 
-
     installEventGraficaGenero() {
-        const btnGrafica = document.getElementById("btmGetGrafica");
-        const modal = document.getElementById("modalGraficaGenero");
-        const closeBtn = modal.querySelector(".close-button");
         let chartInstance = null;
-
-        btnGrafica.addEventListener("click", () => {
+        document.getElementById("btmGetGrafica").addEventListener("click", () => {
             // Contar clientes por género
             const conteo = {Masculino: 0, Femenino: 0, Otro: 0};
             this.listaClientesCompleta.forEach(c => {
                 if (conteo[c.genero] !== undefined) conteo[c.genero]++;
             });
 
-            // Mostrar modal
-            modal.style.display = "block";
+            const modal = this.getModalCustom();
+
+            modal.title.textContent = 'Distribución de Clientes por Género';
+            modal.body.innerHTML = `<canvas id="graficaGenero" width="400" height="300" style="padding: 1rem 2.5rem"></canvas>`;
+            const canvas2d = modal.body.querySelector('canvas').getContext("2d");
+            modal.show();
 
             // Destruir gráfico anterior si existe
             if (chartInstance) chartInstance.destroy();
-
-            // Crear gráfico
-            const ctx = document.getElementById("graficaGenero").getContext("2d");
-            chartInstance = new Chart(ctx, {
+            chartInstance = new Chart(canvas2d, {
                 type: "bar",
                 data: {
                     labels: ["Masculino", "Femenino", "Otro"],
@@ -501,7 +609,13 @@ class FormCliente {
                 }
             });
         });
+    }
 
+
+    // Configuración básica para modales
+    installSettingsModal() {
+        const modal = this.modalCustom;
+        const closeBtn = modal.querySelector(".close-button");
         closeBtn.addEventListener("click", () => {
             modal.style.display = "none";
         });
@@ -511,6 +625,22 @@ class FormCliente {
             }
         });
     }
+
+    getModalCustom() {
+        // Reset
+        this.modalTitleCustom.textContent = '';
+        this.modalBodyCustom.innerHTML = '';
+        // Retornar referencias
+        const custom = {
+            modal: this.modalCustom,
+            body: this.modalBodyCustom,
+            title: this.modalTitleCustom,
+            show : () => this.modalCustom.style.display = 'block',
+            hide : () => this.modalCustom.style.display = 'none'
+        };
+        return custom;
+    }
+
 }
 
 export default FormCliente;

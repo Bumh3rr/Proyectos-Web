@@ -109,73 +109,18 @@
                 <section id="clientes" class="tab-content active">
                     <h2>Gestión de Clientes</h2>
 
-                    <div class="form-container">
-                        <h3>Registrar Nuevo Cliente</h3>
-                        <form id="formCliente">
-                            <div class="form-group">
-                                <label for="nombre">Nombre Completo:</label>
-                                <input type="text" id="nombre" required/>
-                            </div>
-
-                            <!-- Genero -->
-                            <div class="form-group">
-                                <label for="genero">Género:</label>
-                                <select id="genero" required>
-                                    <option value="">Seleccione un género...</option>
-                                    <option value="Masculino">Masculino</option>
-                                    <option value="Femenino">Femenino</option>
-                                    <option value="Otro">Otro</option>
-                                </select>
-                            </div>
-
-                            <div class="form-group">
-                                <label for="rfc">RFC:</label>
-                                <input type="text" id="rfc" required maxlength="13"/>
-                            </div>
-
-                            <div class="form-group">
-                                <label for="telefono">Teléfono:</label>
-                                <input type="tel" id="telefono" required maxlength="10"/>
-                            </div>
-
-                            <div class="form-group">
-                                <label for="direccion">Dirección:</label>
-                                <input type="text" id="direccion" required/>
-                            </div>
-
-                            <div class="form-group">
-                                <label>Foto del Cliente:</label>
-                                <video id="videoCliente" width="200" height="150" autoplay style="border:1px solid #ccc;"></video>
-                                <canvas id="canvasFotoCliente" width="200" height="150" style="display:none;"></canvas>
-                                <button type="button" id="btnTomarFoto" class="btn btn-secondary">Tomar Foto</button>
-                                <img id="previewFotoCliente" src="" alt="Foto tomada" style="display:none; width:200px; height:150px; margin-top:10px; border:1px solid #ccc;"/>
-                            </div>
-
-                            <div class="form-group">
-                                <label>Firma del Cliente:</label>
-                                <canvas id="canvasFirmaCliente" width="200" height="80" style="border:1px solid #ccc; background:#fff; cursor:crosshair;"></canvas>
-                                <button type="button" id="btnLimpiarFirma" class="btn btn-secondary" style="margin-top:5px;">Limpiar Firma</button>
-                                <img id="previewFirmaCliente" src="" alt="Firma tomada" style="display:none; width:200px; height:80px; margin-top:10px; border:1px solid #ccc;"/>
-                            </div>
-
-
-                            <button type="submit" class="btn-register-customer">
-                                Registrar Cliente
-                            </button>
-                        </form>
-                    </div>
-
                     <div class="table-container">
                         <h3>Lista de Clientes</h3>
+                        <input type="text" id="buscarClienteInput" placeholder="Buscar por nombre o RFC"/>
+
                         <div class="search-container">
-                            <input
-                                    type="text"
-                                    id="buscarClienteInput"
-                                    placeholder="Buscar por nombre o RFC"
-                            />
-                             <button id="btnImprimirClientes" class="btn btn-primary">Imprimir Clientes</button>
-                             <button id="btmGetGrafica" class="btn btn-info">Generar Grafica</button>
+                             <div>
+                                 <button id="btnImprimirClientes" class="btn btn-info">Imprimir Clientes</button>
+                                 <button id="btmGetGrafica" class="btn btn-info">Generar Grafica</button>
+                             </div>
+                             <button id="btnOpenModalAddCustomer" class="btn btn-primary">Agregar Cliente</button>
                         </div>
+
                         <table id="tablaClientes" class="tabla-card">
                             <thead>
                             <tr>
@@ -435,6 +380,85 @@
             </div>
         </div>
 
+        <!-- Modal Custom -->
+        <div id="modal-custom" class="modal">
+            <div class="modal-content">
+                <span class="close-button"></span>
+                <h2 style="margin-right:2rem" id="title-content-modal"></h2>
+                <div id="body-content-modal"></div>
+            </div>
+        </div>
+
+        <!-- Modal Add Customer -->
+        <div id="modal-cliente-add" class="modal">
+            <div class="modal-content">
+                <h2>Registrar Nuevo Cliente</h2>
+                <span class="close-button"></span>
+                <div class="form-container-modal">
+                    <form id="formCliente">
+                        <!-- Nombre Completo -->
+                        <div class="form-group">
+                            <label for="nombre">Nombre Completo:</label>
+                            <input type="text" id="nombre" required/>
+                        </div>
+
+                        <!-- Genero -->
+                        <div class="form-group">
+                            <label for="genero">Género:</label>
+                            <select id="genero" required>
+                                <option value="">Seleccione un género...</option>
+                                <option value="Masculino">Masculino</option>
+                                <option value="Femenino">Femenino</option>
+                                <option value="Otro">Otro</option>
+                            </select>
+                        </div>
+
+                        <!-- RFC y Teléfono -->
+                        <div class="form-group-split">
+                            <div class="form-group">
+                                <label for="rfc">RFC:</label>
+                                <input type="text" id="rfc" required maxlength="13"/>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="telefono">Teléfono:</label>
+                                <input type="tel" id="telefono" required maxlength="10"/>
+                            </div>
+                        </div>
+
+                        <!-- Dirección -->
+                        <div class="form-group">
+                            <label for="direccion">Dirección:</label>
+                            <input type="text" id="direccion" required/>
+                        </div>
+
+                        <!-- Foto y Firma -->
+                        <div class="form-group-split">
+                            <div class="form-group">
+                                <label>Foto del Cliente:</label>
+                                <video id="videoCliente" width="200" height="150" autoplay style="border:1px solid #ccc; border-radius: 8px;"></video>
+                                <canvas id="canvasFotoCliente" width="200" height="150" style="display:none;"></canvas>
+                                <img id="previewFotoCliente" src="" alt="Foto tomada" style="display:none; width:200px; height:150px; border:1px solid #ccc; border-radius: 8px;"/>
+                                <center><button type="button" id="btnTomarFoto" class="btn btn-secondary">Tomar Foto</button></center>
+                            </div>
+
+                            <div class="form-group">
+                                <label>Firma del Cliente:</label>
+                                <canvas id="canvasFirmaCliente" width="200" height="150" style="border:1px solid #ccc; background:#fff; cursor:crosshair; border-radius: 8px"></canvas>
+                                <center><button type="button" id="btnLimpiarFirma" class="btn btn-secondary">Limpiar Firma</button></center>
+                                <img id="previewFirmaCliente" src="" alt="Firma tomada" style="display:none; width:200px; height:80px; margin-top:10px; border:1px solid #ccc;"/>
+                            </div>
+                        </div>
+
+                        <button type="submit" class="btn-register-customer">
+                            Registrar Cliente
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- Modal Confirmar Eliminar -->
         <div id="modalConfirmarEliminar" class="modal">
             <div class="modal-content">
                 <h2>Confirmar Eliminación</h2>
@@ -448,34 +472,6 @@
                     </button>
                     <button id="btnCancelarEliminar" class="btn">Cancelar</button>
                 </div>
-            </div>
-        </div>
-
-        <div id="modalEditarTasa" class="modal">
-            <div class="modal-content">
-                <span class="close-button">&times;</span>
-                <h2>Editar Tasa de Interés</h2>
-                <form id="formEditarTasa">
-                    <input type="hidden" id="editarTasaId"/>
-                    <div class="form-group">
-                        <label for="editarTasaNombre">Nombre de la Tasa:</label>
-                        <input type="text" id="editarTasaNombre" required/>
-                    </div>
-                    <div class="form-group">
-                        <label for="editarTasaPorcentaje">Porcentaje Anual (%):</label>
-                        <input
-                                type="number"
-                                id="editarTasaPorcentaje"
-                                step="0.01"
-                                required
-                        />
-                    </div>
-                    <div class="form-group">
-                        <label for="editarTasaDescripcion">Descripción:</label>
-                        <textarea id="editarTasaDescripcion" rows="3"></textarea>
-                    </div>
-                    <button type="submit" class="btn btn-primary">Guardar Cambios</button>
-                </form>
             </div>
         </div>
 
@@ -494,15 +490,8 @@
             </div>
         </div>
 
-        <div id="modalCredencial" class="modal">
-            <div class="modal-content">
-                <span class="close-button"></span>
-                <h2>Credencial</h2>
-                <iframe id="iframe-credencial-pdf"  width="100%" height="500px"></iframe>
-            </div>
-        </div>
-
-        <iframe id="iframePdf" width="100%" height="500px"></iframe>
+        <!-- QRious -->
+        <script src="https://cdn.jsdelivr.net/npm/qrious@4.0.2/dist/qrious.min.js"></script>
 
         <!-- Chart.js -->
         <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
